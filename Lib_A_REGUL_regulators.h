@@ -92,14 +92,19 @@ typedef struct
 	float b1;
 
 	/**
-	 * @brief
+	 * @brief	Степерь, в которую необходимо возвести ошибку "e1";
 	 */
 	float e1PowCoeff;
 
 	/**
-	 * @brief
+	 * @brief	Степень, в которую необходимо возвести ошибку "e2"
 	 */
-	float e2PowCoeff
+	float e2PowCoeff;
+
+	/**
+	 * @brief	Максимальное значение по модулю выходного параметра;
+	 */
+	float saturation;
 } REGUL_integ_back_step_s;
 
 typedef struct
