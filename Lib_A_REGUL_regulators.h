@@ -1,4 +1,4 @@
-/*
+/**
  * Lib_A_REGUL_regulators.h
  *
  *  Created on: 2 февр. 2018 г.
@@ -90,7 +90,51 @@ typedef struct
 	 * @see		eq. 4.53;
 	 */
 	float b1;
+
+	/**
+	 * @brief
+	 */
+	float e1PowCoeff;
+
+	/**
+	 * @brief
+	 */
+	float e2PowCoeff
 } REGUL_integ_back_step_s;
+
+typedef struct
+{
+	float kp;
+
+	float ki;
+
+	float kd;
+
+	/**
+	 * @brief	Интегральная состоавляющая ошибки;
+	 */
+	float integral;
+
+	/**
+	 * @brief	Интегральная состоавляющая ошибки после коррекции насыщения;
+	 */
+	float integralAfterCorrect;
+
+	/**
+	 * @brief	Ошибка за предыдущий момент времени;
+	 */
+	float error_t1;
+
+	/**
+	 * @brief	Величина шага для нахождения производной;
+	 */
+	float dT;
+
+	/**
+	 * @brief	Ограничение насыщения;
+	 */
+	float saturation;
+} REGUL_pid_regulator_s;
 /******************************************************************************/
 
 
@@ -114,6 +158,10 @@ extern void REGUL_Init_IntergralBackStep(
                                          float c2,
                                          float lambda,
                                          float b1);
+
+extern float REGUL_PI_regulator(
+                                REGUL_pid_regulator_s *pSturct,
+                                float error);
 /******************************************************************************/
 
 

@@ -52,6 +52,23 @@ float REGUL_IntegralBackStep(
 	//	Разница между желаемым положением и текущим;
 	float e1 = phi_d - phi;
 
+	//	Возведение в степень модуля ошибки e1;
+	//	Если коэффициент, в который необходимо возвести "e1" не равен "1.0f" или "0.0f":
+	if (pStruct->e1PowCoeff != 1.0f || pStruct->e1PowCoeff != 0.0f)
+	{
+		//	Если "e1" положительное число;
+		if (e1 >= 0.0f)
+		{
+			e1 = powf(e1, pStruct->e1PowCoeff);
+		}
+		//	Иначе:
+		else
+		{
+			//	Результат возведения в степень модуля числа "e1" умножается на "-1.0f"
+			e1 = (powf(fabsf(e1), pStruct->e1PowCoeff)) * -1.0f;
+		}
+	}
+
 	//--------------------------------------------------------------------------
 	/*	Дифференцирование желаемого положения */
 	//	Нахождение производной от желаемого углового положения;
@@ -63,7 +80,7 @@ float REGUL_IntegralBackStep(
 	//--------------------------------------------------------------------------
 
 	//	Расчет интегральной состоавляющей (смотри комментарий к eq. 4.46);
-	pStruct->chi += e1;
+	pStruct->chi += e1 * pStruct->lambda * pStruct->dT;
 
 	//	Расчет желаемой угловой скорости (eq. 4.46);
 	pStruct->omega_xd = pStruct->c1 * e1
@@ -72,6 +89,23 @@ float REGUL_IntegralBackStep(
 
 	//	Расчет ошибки между желаемой угловой скоростью и фактической (eq. 4.48);
 	float e2 = pStruct->omega_xd - omega_x;
+
+	//	Возведение в степень модуля ошибки e2;
+	//	Если коэффициент, в который необходимо возвести "e2" не равен "1.0f" или "0.0f":
+	if (pStruct->e2PowCoeff != 1 || pStruct->e2PowCoeff != 0)
+	{
+		//	Если "e2" положительное число;
+		if (e2 >= 0.0f)
+		{
+			e2 = powf(e2, pStruct->e1PowCoeff);
+		}
+		//	Иначе:
+		else
+		{
+			//	Результат возведения в степень модуля числа "e2" умножается на "-1.0f"
+			e2 = (powf(fabsf(e2), pStruct->e2PowCoeff)) * -1.0f;
+		}
+	}
 
 	//	Расчет управляющего воздействия (eq. 4.53);
 	float returnValue = 1 / pStruct->b1
@@ -111,6 +145,65 @@ void REGUL_Init_IntergralBackStep(
 	pStruct->lambda = lambda;
 	pStruct->b1 = b1;
 
+}
+
+/**
+ * @brief	Функция ПИ регулятора с ограничением насыщения интегральной составляющей;
+ * @see	А.С. Анучин "Системы управления электроприводами" стр. 209
+ */
+float REGUL_PI_regulator(REGUL_pid_regulator_s *pSturct, float error)
+{
+	float propCorrect;
+	float piCorrect;
+	float errorAndSaturetionDiff;
+
+	//	Расчет пропорциональной коррекции
+	propCorrect = error * pSturct->kp;
+
+	//	Расчет интегральной коррекции;
+	pSturct->integral += error * pSturct->ki * pSturct->dT;
+
+	//	Расчет ПИ регулятора;
+	piCorrect = propCorrect + pSturct->integral;
+
+	piCorrect += pSturct->integralAfterCorrect;
+
+	// Рассчет во сколько раз сигнал получился больше насыщения;
+	errorAndSaturetionDiff = fabsf(piCorrect) / fabsf(pSturct->saturation);
+
+	//	Масштабирование входного сигнала;
+//	error *= errorAndSaturetionDiff;
+
+	//	Расчет пропорциональной коррекции после коррекции насыщения
+	propCorrect = error * pSturct->kp;
+
+	//	Расчет интегральной коррекции;
+	pSturct->integralAfterCorrect += error * pSturct->ki * pSturct->dT;
+
+	//	Ограничение насыщения интегральной составляющей;
+	if (pSturct->integralAfterCorrect > pSturct->saturation)
+	{
+		pSturct->integralAfterCorrect = pSturct->saturation;
+	}
+	else if (pSturct->integralAfterCorrect < (-pSturct->saturation))
+	{
+		pSturct->integralAfterCorrect = -pSturct->saturation;
+	}
+
+	//	Расчет ПИ регулятора;
+	piCorrect = propCorrect + pSturct->integral;
+
+	//	Ограничение насыщения ПИ регулятора;
+	if (piCorrect > pSturct->saturation)
+	{
+		piCorrect = pSturct->saturation;
+	}
+	else if (piCorrect < (-pSturct->saturation))
+	{
+		piCorrect = -pSturct->saturation;
+	}
+
+	return piCorrect;
 }
 /*============================================================================*/
 /******************************************************************************/
