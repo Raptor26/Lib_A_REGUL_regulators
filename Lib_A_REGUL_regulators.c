@@ -16,6 +16,13 @@
 /******************************************************************************/
 /*============================================================================*/
 // 	Глобальные переменные
+#if	defined __REGUL_REGULATORS_DEBUG__
+float g_e1;
+float g_e2;
+float g_IntegralBackStepReturnValue;
+float g_omega_x;
+float g_chi;
+#endif
 /*============================================================================*/
 
 
@@ -60,13 +67,13 @@ float REGUL_IntegralBackStep(
 		//	Если "e1" положительное число;
 		if (e1 >= 0.0f)
 		{
-			e1 = powf(e1, pStruct->e1PowCoeff);
+			e1 = powf(e1, fabsf(pStruct->e1PowCoeff));
 		}
 		//	Иначе (если "e1" отрицательное число):
 		else
 		{
 			//	Результат возведения в степень модуля числа "e1" умножается на "-1.0f"
-			e1 = (powf(fabsf(e1), pStruct->e1PowCoeff)) * -1.0f;
+			e1 = (powf(fabsf(e1), fabsf(pStruct->e1PowCoeff))) * -1.0f;
 		}
 	}
 	//--------------------------------------------------------------------------
@@ -97,7 +104,7 @@ float REGUL_IntegralBackStep(
 		}
 		//	Если значение интегральной составляющей меньше отрицательного значения
 		//	переменной насыщения:
-		else if (pStruct->chi < -pStruct->saturation)
+		else if (pStruct->chi < (-pStruct->saturation))
 		{
 			pStruct->chi = -pStruct->saturation;
 		}
@@ -120,13 +127,13 @@ float REGUL_IntegralBackStep(
 		//	Если "e2" положительное число;
 		if (e2 >= 0.0f)
 		{
-			e2 = powf(e2, pStruct->e1PowCoeff);
+			e2 = powf(e2, fabsf(pStruct->e1PowCoeff));
 		}
 		//	Иначе (если "e2" отрицательное число):
 		else
 		{
 			//	Результат возведения в степень модуля числа "e2" умножается на "-1.0f"
-			e2 = (powf(fabsf(e2), pStruct->e2PowCoeff)) * -1.0f;
+			e2 = (powf(fabsf(e2), fabsf(pStruct->e2PowCoeff))) * -1.0f;
 		}
 	}
 	//--------------------------------------------------------------------------
@@ -149,13 +156,23 @@ float REGUL_IntegralBackStep(
 			returnValue = pStruct->saturation;
 		}
 		//	Если выходное значение меньше отрицательного значения переменной насыщения:
-		else if (returnValue < -pStruct->saturation)
+		else if (returnValue < (-pStruct->saturation))
 		{
 			returnValue = -pStruct->saturation;
 		}
 	}
 	//--------------------------------------------------------------------------
+
+#if	defined __REGUL_REGULATORS_DEBUG__
+	g_e1 = e1;
+	g_e2 = e2;
+	g_IntegralBackStepReturnValue = returnValue;
+	g_omega_x = omega_x;
+	g_chi = pStruct->chi;
+#endif
+
 	return returnValue;
+
 }
 
 /**

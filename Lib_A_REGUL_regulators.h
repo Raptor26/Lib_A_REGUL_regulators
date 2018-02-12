@@ -145,6 +145,13 @@ typedef struct
 
 /******************************************************************************/
 //  Секция определения глобальных переменных
+#if	defined __REGUL_REGULATORS_DEBUG__
+extern float g_e1;
+extern float g_e2;
+extern float g_IntegralBackStepReturnValue;
+extern float g_omega_x;
+extern float g_chi;
+#endif
 /******************************************************************************/
 
 
