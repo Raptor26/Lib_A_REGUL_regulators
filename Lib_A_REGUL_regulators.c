@@ -173,19 +173,20 @@ float REGUL_IntegralBackStep(
  * @return	None;
  */
 void REGUL_Init_IntergralBackStep(
-                                  REGUL_integ_back_step_s *pStruct,
-                                  float dT,
-                                  float c1,
-                                  float c2,
-                                  float lambda,
-                                  float b1)
+                                  REGUL_integ_back_step_s *pStruct)
 {
-	pStruct->dT = dT;
-	pStruct->c1 = c1;
-	pStruct->c2 = c2;
-	pStruct->lambda = lambda;
-	pStruct->b1 = b1;
-
+	pStruct->dT = 0.0f;
+	pStruct->c1 = 0.0f;
+	pStruct->c2 = 0.0f;
+	pStruct->lambda = 0.0f;
+	pStruct->b1 = 1.0f;
+	pStruct->e1PowCoeff = 1.0f;
+	pStruct->e2PowCoeff = 1.0f;
+	pStruct->saturation = 0.0f;
+	pStruct->chi = 0.0f;
+	pStruct->omega_xd = 0.0f;
+	pStruct->phi_d_t1 = 0.0f;
+	pStruct->phi_d_deriv = 0.0f;
 }
 
 /**

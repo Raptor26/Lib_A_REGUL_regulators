@@ -157,12 +157,7 @@ extern float REGUL_IntegralBackStep(
                                     float omega_x);
 
 extern void REGUL_Init_IntergralBackStep(
-                                         REGUL_integ_back_step_s *pStruct,
-                                         float dT,
-                                         float c1,
-                                         float c2,
-                                         float lambda,
-                                         float b1);
+                                         REGUL_integ_back_step_s *pStruct);
 
 extern float REGUL_PI_regulator(
                                 REGUL_pid_regulator_s *pSturct,
