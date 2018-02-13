@@ -22,6 +22,7 @@ float g_e2;
 float g_IntegralBackStepReturnValue;
 float g_omega_x;
 float g_chi;
+float g_b1;
 #endif
 /*============================================================================*/
 
@@ -58,6 +59,12 @@ float REGUL_IntegralBackStep(
 {
 	//	Разница между желаемым положением и текущим;
 	float e1 = phi_d - phi;
+
+	//	Если необходимо взять ошибку по модулю:
+	if (pStruct->e1TakeModuleEn == 1)
+	{
+		e1 = fabsf(e1);
+	}
 
 	//--------------------------------------------------------------------------
 	/*	Возведение в степень ошибки e1 */
@@ -169,6 +176,7 @@ float REGUL_IntegralBackStep(
 	g_IntegralBackStepReturnValue = returnValue;
 	g_omega_x = omega_x;
 	g_chi = pStruct->chi;
+	g_b1 = pStruct->b1;
 #endif
 
 	return returnValue;
@@ -204,6 +212,7 @@ void REGUL_Init_IntergralBackStep(
 	pStruct->omega_xd = 0.0f;
 	pStruct->phi_d_t1 = 0.0f;
 	pStruct->phi_d_deriv = 0.0f;
+	pStruct->e1TakeModuleEn = 0;
 }
 
 /**

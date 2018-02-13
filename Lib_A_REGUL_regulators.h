@@ -105,6 +105,11 @@ typedef struct
 	 * @brief	Максимальное значение по модулю выходного параметра;
 	 */
 	float saturation;
+
+	/**
+	 * @brief	Взятие ошибки "e1" по модулю;
+	 */
+	size_t e1TakeModuleEn;
 } REGUL_integ_back_step_s;
 
 typedef struct
@@ -151,6 +156,7 @@ extern float g_e2;
 extern float g_IntegralBackStepReturnValue;
 extern float g_omega_x;
 extern float g_chi;
+extern float g_b1;
 #endif
 /******************************************************************************/
 
