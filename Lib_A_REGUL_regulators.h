@@ -125,6 +125,7 @@ typedef struct
 		 * @brief	Интерпретация входного параметра "phi_d" как "e1";
 		 */
 		size_t phi_d_its_e1;
+
 	} tumblers; /*	Переключатели режима работы регулятора */
 
 } REGUL_integ_back_step_s;
