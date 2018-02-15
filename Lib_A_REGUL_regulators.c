@@ -1,8 +1,12 @@
 /**
- * Lib_A_REGUL_regulators.c
- *
- *  Created on: 2 февр. 2018 г.
- *      Author: m.isaev
+ * @file	Lib_A_REGUL_regulators.c;
+ * @author 	Isaev Mickle;
+ * @version	beta;
+ * @date 	15.02.2018;
+ * @brief	Библиотека содержит следующие функции регуляторов:
+ * 			+ Инициализация структуры REGUL_integ_back_step_s стандартными значениями;
+ * 			+ Расчет управляющего воздействия методом IntegralBackStep;
+ * 			+ Расчет управляющего воздействия методом PI;
  */
 
 
@@ -43,13 +47,22 @@ float g_b1;
 /*============================================================================*/
 
 /**
- * @brief
- * @param	[in]	*pStruct:	Указатель на структуру, содержащую необходимые
- * 								данные для регулятора IBSC;
- * @param	[in]	phi_d:	Желаемое положение;
- * @param	[in]	phi:	Текущее положение;
- * @param	[in]	omega_x:	Производная от регулируемого параметра;
+ * @brief	Функция для расчета управляющего воздействия с помощью
+ * 			"Integral Back Step Controller";
+ * @param[in]	*pStruct:	Указатель на структуру, содержащую необходимые
+ * 							данные для регулятора IBSC;
+ * @param[in]	phi_d:		Желаемое положение;
+ * 	@note	Если "phi_d_its_e1" = 1, то "phi_d" интерпретируется как ошибка
+ * 			между желаемым положнием и текущим (т.е. как "e1");
+ * 	@see	REGUL_integ_back_step_s;
+ *
+ * @param[in]	phi:		Текущее положение;
+ * @param[in]	omega_x:	Производная от "phi";
+ *
  * @return	Рассчитанная величина управляющего воздействия;
+ *
+ * @note	см. eq. 4.45 - 4.53 в документе "Design and control of quadrotors
+ *			with application to autonomous flying"
  */
 float REGUL_IntegralBackStep(
                              REGUL_integ_back_step_s *pStruct,
@@ -57,11 +70,23 @@ float REGUL_IntegralBackStep(
                              float phi,
                              float omega_x)
 {
-	//	Разница между желаемым положением и текущим;
-	float e1 = phi_d - phi;
+	/*	Разница между текущим положением и желаемым */
+	float e1;
+
+	//	Если необходимо "phi_d" интерпретировать как "e1":
+	if (pStruct->tumblers.phi_d_its_e1 == REGUL_EN)
+	{
+		e1 = phi_d;
+	}
+	//	Иначе штатный режим:
+	else
+	{
+		//	Разница между желаемым положением и текущим;
+		e1 = phi_d - phi;
+	}
 
 	//	Если необходимо взять ошибку по модулю:
-	if (pStruct->e1TakeModuleEn == 1)
+	if (pStruct->tumblers.e1TakeModule == REGUL_EN)
 	{
 		e1 = fabsf(e1);
 	}
@@ -74,25 +99,31 @@ float REGUL_IntegralBackStep(
 		//	Если "e1" положительное число;
 		if (e1 >= 0.0f)
 		{
+			//	"e1PowCoeff" берется по модулю;
 			e1 = powf(e1, fabsf(pStruct->e1PowCoeff));
 		}
 		//	Иначе (если "e1" отрицательное число):
 		else
 		{
-			//	Результат возведения в степень модуля числа "e1" умножается на "-1.0f"
+			//	Результат возведения в степень модуля числа "e1" умножается на "-1.0f";
+			//	"e1PowCoeff" берется по модулю;
 			e1 = (powf(fabsf(e1), fabsf(pStruct->e1PowCoeff))) * -1.0f;
 		}
 	}
 	//--------------------------------------------------------------------------
 
 	//--------------------------------------------------------------------------
-	/*	Дифференцирование желаемого положения */
-	//	Нахождение производной от желаемого углового положения;
-	pStruct->phi_d_deriv = (phi_d - pStruct->phi_d_t1) / pStruct->dT;
+	//	Если "e1" рассчитывается в функции "REGUL_IntegralBackStep";
+	if (pStruct->tumblers.phi_d_its_e1 == REGUL_DIS)
+	{
+		/*	Дифференцирование желаемого положения */
+		//	Нахождение производной от желаемого углового положения;
+		pStruct->phi_d_deriv = (phi_d - pStruct->phi_d_t1) / pStruct->dT;
 
-	//	Текущее "желаемое положение" копируется в переменную "желаемое положение
-	//	на шаге <t-1>" для дифференцирования на при следующем вызове функции;
-	pStruct->phi_d_t1 = phi_d;
+		//	Текущее "желаемое положение" копируется в переменную "желаемое положение
+		//	на шаге <t-1>" для дифференцирования на при следующем вызове функции;
+		pStruct->phi_d_t1 = phi_d;
+	}
 	//--------------------------------------------------------------------------
 
 	//	Расчет интегральной состоавляющей (смотри комментарий к eq. 4.46);
@@ -185,17 +216,13 @@ float REGUL_IntegralBackStep(
 
 /**
  * @brief	Функция выполняет инициализацию полей структуры "REGUL_integ_back_step_s"
- * @param	[out]	*pStruct:	Указатель на структуру, в поля которой будут записаны
- * 								значения для расчета управляющего воздействия;
- * @param	[in]	dT:	Шаг дифференцирования регулируемого параметра в "сек";
- * @param	[in]	c1:	Коэффициент коррекции ошибки регулируемого параметра;
- * @param	[in]	c2:	Коэффициент коррекции производной от ошибки регулируемого
- * 						параметра;
- * @param	[in]	lambda:	Коэффициент интегральной коррекции;
- * @param	[in]	b1:	Коэффициент коррекции системы;
+ * @param[out]	*pStruct:	Указатель на структуру, в поля которой будут записаны
+ * 							стандартные параметры регулятора;
+ *
+ * @return	None;
+ *
  * @note	см. eq. 4.45 - 4.53 в документе "Design and control of quadrotors
  *			with application to autonomous flying"
- * @return	None;
  */
 void REGUL_Init_IntergralBackStep(
                                   REGUL_integ_back_step_s *pStruct)
@@ -212,7 +239,10 @@ void REGUL_Init_IntergralBackStep(
 	pStruct->omega_xd = 0.0f;
 	pStruct->phi_d_t1 = 0.0f;
 	pStruct->phi_d_deriv = 0.0f;
-	pStruct->e1TakeModuleEn = 0;
+
+	//	Значения переключателей;
+	pStruct->tumblers.e1TakeModule = REGUL_DIS;
+	pStruct->tumblers.phi_d_its_e1 = REGUL_DIS;
 }
 
 /**
