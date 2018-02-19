@@ -39,6 +39,9 @@ float g_b1;
 
 /******************************************************************************/
 // 	Секция прототипов локальных функций
+float REGUL_PowerForIBSC(
+                         float basis,
+                         float exponent);
 /******************************************************************************/
 
 
@@ -307,6 +310,31 @@ float REGUL_PI_regulator(REGUL_pid_regulator_s *pSturct, float error)
 	return piCorrect;
 }
 /*============================================================================*/
+
+float REGUL_PowerForIBSC(
+                         float basis,
+                         float exponent)
+{
+	if ((exponent != 1.0f)
+	    || (exponent != -1.0f)
+	    || (exponent != 0.0f))
+	{
+		//	Если "basis" положительное число;
+		if (basis >= 0.0f)
+		{
+			//	"e1PowCoeff" берется по модулю;
+			basis = powf(basis, fabsf(exponent));
+		}
+		//	Иначе (если "basis" отрицательное число):
+		else
+		{
+			//	Результат возведения в степень модуля числа "basis" умножается на "-1.0f";
+			//	"exponent" берется по модулю;
+			basis = (powf(fabsf(basis), fabsf(exponent))) * -1.0f;
+		}
+	}
+	return basis;
+}
 /******************************************************************************/
 
 
