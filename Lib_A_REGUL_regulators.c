@@ -39,9 +39,12 @@ float g_b1;
 
 /******************************************************************************/
 // 	Секция прототипов локальных функций
-float REGUL_PowerForIBSC(
-                         float basis,
-                         float exponent);
+float PowerForIBSC(
+                   float basis,
+                   float exponent);
+float RestrictionSaturation(
+                            float value,
+                            float saturation);
 /******************************************************************************/
 
 
@@ -94,35 +97,14 @@ float REGUL_IntegralBackStep(
 		e1 = fabsf(e1);
 	}
 
-	//--------------------------------------------------------------------------
 	/*	Возведение в степень ошибки e1 */
-	//	Если степень, в которую необходимо возвести "e1" не равна "1.0f",
-	//	"-1.0f" или "0.0f":
-	if ((pStruct->e1PowCoeff != 1.0f)
-	    || (pStruct->e1PowCoeff != -1.0f)
-	    || (pStruct->e1PowCoeff != 0.0f))
-	{
-		//	Если "e1" положительное число;
-		if (e1 >= 0.0f)
-		{
-			//	"e1PowCoeff" берется по модулю;
-			e1 = powf(e1, fabsf(pStruct->e1PowCoeff));
-		}
-		//	Иначе (если "e1" отрицательное число):
-		else
-		{
-			//	Результат возведения в степень модуля числа "e1" умножается на "-1.0f";
-			//	"e1PowCoeff" берется по модулю;
-			e1 = (powf(fabsf(e1), fabsf(pStruct->e1PowCoeff))) * -1.0f;
-		}
-	}
-	//--------------------------------------------------------------------------
+	e1 = PowerForIBSC(e1, pStruct->e1PowCoeff);
 
 	//--------------------------------------------------------------------------
+	/*	Дифференцирование желаемого положения */
 	//	Если "e1" рассчитывается в функции "REGUL_IntegralBackStep";
 	if (pStruct->tumblers.phi_d_its_e1 == REGUL_DIS)
 	{
-		/*	Дифференцирование желаемого положения */
 		//	Нахождение производной от желаемого углового положения;
 		pStruct->phi_d_deriv = (phi_d - pStruct->phi_d_t1) / pStruct->dT;
 
@@ -135,25 +117,9 @@ float REGUL_IntegralBackStep(
 	//	Расчет интегральной состоавляющей (смотри комментарий к eq. 4.46);
 	pStruct->chi += e1 * pStruct->lambda * pStruct->dT;
 
-	//--------------------------------------------------------------------------
 	/*	Ограничение насыщения интегральной составляющей */
-	//	Если переменная насыщения не равна "0.0f":
-	if (pStruct->saturation != 0.0f)
-	{
-		//	Если значение интегральной составляющей больше положительного значения
-		//	переменной насыщения:
-		if (pStruct->chi > pStruct->saturation)
-		{
-			pStruct->chi = pStruct->saturation;
-		}
-		//	Если значение интегральной составляющей меньше отрицательного значения
-		//	переменной насыщения:
-		else if (pStruct->chi < (-pStruct->saturation))
-		{
-			pStruct->chi = -pStruct->saturation;
-		}
-	}
-	//--------------------------------------------------------------------------
+	pStruct->chi = RestrictionSaturation(pStruct->chi,
+	                                     pStruct->saturation);
 
 	//	Расчет желаемой угловой скорости (eq. 4.46);
 	pStruct->omega_xd = pStruct->c1 * e1
@@ -163,24 +129,8 @@ float REGUL_IntegralBackStep(
 	//	Расчет ошибки между желаемой угловой скоростью и фактической (eq. 4.48);
 	float e2 = pStruct->omega_xd - omega_x;
 
-	//--------------------------------------------------------------------------
 	/*	Возведение в степень ошибки e2 */
-	//	Если коэффициент, в который необходимо возвести "e2" не равен "1.0f" или "0.0f":
-	if (pStruct->e2PowCoeff != 1 || pStruct->e2PowCoeff != 0)
-	{
-		//	Если "e2" положительное число;
-		if (e2 >= 0.0f)
-		{
-			e2 = powf(e2, fabsf(pStruct->e1PowCoeff));
-		}
-		//	Иначе (если "e2" отрицательное число):
-		else
-		{
-			//	Результат возведения в степень модуля числа "e2" умножается на "-1.0f"
-			e2 = (powf(fabsf(e2), fabsf(pStruct->e2PowCoeff))) * -1.0f;
-		}
-	}
-	//--------------------------------------------------------------------------
+	e2 = PowerForIBSC(e2, pStruct->e2PowCoeff);
 
 	//	Расчет управляющего воздействия (eq. 4.53);
 	float returnValue = 1 / pStruct->b1
@@ -189,23 +139,9 @@ float REGUL_IntegralBackStep(
 	                    + (pStruct->c1 + pStruct->c2) * e2
 	                    - pStruct->c1 * pStruct->lambda * pStruct->chi;
 
-	//--------------------------------------------------------------------------
 	/*	Ограничение насыщения выходного параметра */
-	//	Если переменная насыщения не равна "0.0f":
-	if (pStruct->saturation != 0.0f)
-	{
-		//	Если выходное значение больше положительного значения переменной насыщения:
-		if (returnValue > pStruct->saturation)
-		{
-			returnValue = pStruct->saturation;
-		}
-		//	Если выходное значение меньше отрицательного значения переменной насыщения:
-		else if (returnValue < (-pStruct->saturation))
-		{
-			returnValue = -pStruct->saturation;
-		}
-	}
-	//--------------------------------------------------------------------------
+	returnValue = RestrictionSaturation(returnValue,
+	                                    pStruct->saturation);
 
 #if	defined __REGUL_REGULATORS_DEBUG__
 	g_e1 = e1;
@@ -311,10 +247,20 @@ float REGUL_PI_regulator(REGUL_pid_regulator_s *pSturct, float error)
 }
 /*============================================================================*/
 
-float REGUL_PowerForIBSC(
-                         float basis,
-                         float exponent)
+/* Локальные функции */
+
+/**
+ * @brief
+ * @param
+ * @rapam
+ * @return
+ */
+float PowerForIBSC(
+                   float basis,
+                   float exponent)
 {
+	//	Если степень, в которую необходимо возвести "basis" не равна "1.0f",
+	//	"-1.0f" или "0.0f":
 	if ((exponent != 1.0f)
 	    || (exponent != -1.0f)
 	    || (exponent != 0.0f))
@@ -334,6 +280,36 @@ float REGUL_PowerForIBSC(
 		}
 	}
 	return basis;
+}
+
+/**
+ * @brief	Функция проверяет ограничение насыщения входного параметра по
+ * 			положительному и отрицательному пределу насыщения;
+ * @param[in]	value:	Переменная, насыщение которой необходимо проверить;
+ * @param[in]	saturation:	Значение насыщения, с которым необходимо сравнить
+ * 							переменную "value"
+ * @return	Значение переменной "value", с учетом значения насыщения "saturation";
+ */
+float RestrictionSaturation(
+                            float value,
+                            float saturation)
+{
+	/*	Ограничение насыщения выходного параметра */
+	//	Если переменная насыщения не равна "0.0f":
+	if (saturation != 0.0f)
+	{
+		//	Если выходное значение больше положительного значения переменной насыщения:
+		if (value > saturation)
+		{
+			value = saturation;
+		}
+		//	Если выходное значение меньше отрицательного значения переменной насыщения:
+		else if (value < (-saturation))
+		{
+			value = -saturation;
+		}
+	}
+	return value;
 }
 /******************************************************************************/
 
