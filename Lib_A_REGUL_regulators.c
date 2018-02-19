@@ -58,11 +58,13 @@ float RestrictionSaturation(
  * @param[in]	*pStruct:	Указатель на структуру, содержащую необходимые
  * 							данные для регулятора IBSC;
  * @param[in]	phi_d:		Желаемое положение;
- * 	@note	Если "phi_d_its_e1" = 1, то "phi_d" интерпретируется как ошибка
- * 			между желаемым положнием и текущим (т.е. как "e1");
- * 	@see	REGUL_integ_back_step_s;
+ * 		@note	Если "phi_d_its_e1" = 1, то "phi_d" интерпретируется как ошибка
+ * 				между желаемым положнием и текущим (т.е. как "e1");
+ * 		@see	REGUL_integ_back_step_s;
  *
  * @param[in]	phi:		Текущее положение;
+ * 		@note	Если "phi_d_its_e1" = 1, то переменная "phi" не используется в
+ * 				функции "REGUL_IntegralBackStep";
  * @param[in]	omega_x:	Производная от "phi";
  *
  * @return	Рассчитанная величина управляющего воздействия;
