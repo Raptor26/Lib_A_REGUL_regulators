@@ -123,6 +123,7 @@ typedef struct
 
 		/**
 		 * @brief	Интерпретация входного параметра "phi_d" как "e1";
+		 * @see		brief функции REGUL_IntegralBackStep();
 		 */
 		size_t phi_d_its_e1;
 
