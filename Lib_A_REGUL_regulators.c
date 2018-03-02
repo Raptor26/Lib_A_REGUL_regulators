@@ -134,6 +134,12 @@ float REGUL_IntegralBackStep(
 	/*	Возведение в степень ошибки e2 */
 	e2 = PowerForIBSC(e2, pStruct->e2PowCoeff);
 
+	// Коэффициент "b1" должен быть только положительным;
+	if (pStruct->b1 < 0.0f)
+	{
+		pStruct->b1 = 0.0f;
+	}
+
 	//	Расчет управляющего воздействия (eq. 4.53);
 	float returnValue = 1 / pStruct->b1
 	                    * (1 - pStruct->c1 * pStruct->c1 + pStruct->lambda)
