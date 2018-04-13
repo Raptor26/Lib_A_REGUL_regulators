@@ -84,7 +84,7 @@ float REGUL_IntegralBackStep(
 	pStruct->phi_d_derivStruct.dT = pStruct->dT;
 
 	/* Дифференцирование желаемого положения методом 1-го порядка */
-	float phi_d_deriv = DIFF_FindDifferent1(*pStruct->phi_d_derivStruct,
+	float phi_d_deriv = DIFF_FindDifferent1(&pStruct->phi_d_derivStruct,
 	                                        phi_d);
 	/*---- |End  | <-- Дифференцирование phi_d (т.е. желаемого положения) ----*/
 
