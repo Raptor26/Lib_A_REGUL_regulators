@@ -58,13 +58,14 @@ float RestrictionSaturation(
  * @param[in]	*pStruct:	Указатель на структуру, содержащую необходимые
  * 							данные для регулятора IBSC;
  * @param[in]	phi_d:		Желаемое положение;
- * 		@note	Если "phi_d_its_e1" = 1, то "phi_d" интерпретируется как ошибка
+ * 		@note	Если "phi_d_its_e1Flag" == 1, то "phi_d" интерпретируется как ошибка
  * 				между желаемым положнием и текущим (т.е. как "e1");
  * 		@see	REGUL_integ_back_step_s;
  *
  * @param[in]	phi:		Текущее положение;
- * 		@note	Если "phi_d_its_e1" = 1, то переменная "phi" не используется в
+ * 		@note	Если "phi_d_its_e1Flag" == 1, то переменная "phi" не используется в
  * 				функции "REGUL_IntegralBackStep";
+ * 		@note	Если "phi_d_its_e1Flag" == 1, то
  * @param[in]	omega_x:	Производная от "phi";
  *
  * @return	Рассчитанная величина управляющего воздействия;
@@ -78,11 +79,14 @@ float REGUL_IntegralBackStep(
                              float phi,
                              float omega_x)
 {
-	/*	Разница между текущим положением и желаемым */
-	float e1;
+	/*	Ошибка положения (разница между текущим положением и желаемым) */
+	float e1 = 0.0f;
+
+	/* Ошибка скорости (разница между желаемой скростью и текущей)*/
+	float e2 = 0.0f;
 
 	//	Если необходимо "phi_d" интерпретировать как "e1":
-	if (pStruct->tumblers.phi_d_its_e1 == REGUL_EN)
+	if (pStruct->tumblers.phi_d_its_e1Flag == REGUL_EN)
 	{
 		e1 = phi_d;
 	}
@@ -94,18 +98,22 @@ float REGUL_IntegralBackStep(
 	}
 
 	//	Если необходимо взять ошибку по модулю:
-	if (pStruct->tumblers.e1TakeModule == REGUL_EN)
+	if (pStruct->tumblers.e1TakeModuleFlag == REGUL_EN)
 	{
 		e1 = fabsf(e1);
 	}
 
-	/*	Возведение в степень ошибки e1 */
-	e1 = PowerForIBSC(e1, pStruct->e1PowCoeff);
+	if (pStruct->tumblers.enablePowFunctFlag == REGUL_EN)
+	{
+		/*	Возведение в степень ошибки e1 */
+		e1 = PowerForIBSC(e1,
+		                  pStruct->e1PowCoeff);
+	}
 
 	//--------------------------------------------------------------------------
 	/*	Дифференцирование желаемого положения */
 	//	Если "e1" рассчитывается в функции "REGUL_IntegralBackStep";
-	if (pStruct->tumblers.phi_d_its_e1 == REGUL_DIS)
+	if (pStruct->tumblers.phi_d_its_e1Flag == REGUL_DIS)
 	{
 		//	Нахождение производной от желаемого углового положения;
 		pStruct->phi_d_deriv = (phi_d - pStruct->phi_d_t1) / pStruct->dT;
@@ -123,21 +131,28 @@ float REGUL_IntegralBackStep(
 	pStruct->chi = RestrictionSaturation(pStruct->chi,
 	                                     pStruct->saturation);
 
-	//	Расчет желаемой угловой скорости (eq. 4.46);
-	pStruct->omega_xd = pStruct->c1 * e1
-	                    + pStruct->phi_d_deriv
-	                    + pStruct->lambda * pStruct->chi;
+	if (pStruct->tumblers.phi_d_its_e1Flag == REGUL_DIS)
+	{
+		//	Расчет желаемой угловой скорости (eq. 4.46);
+		pStruct->omega_xd = pStruct->c1 * e1
+		                    + pStruct->phi_d_deriv
+		                    + pStruct->lambda * pStruct->chi;
 
-	//	Расчет ошибки между желаемой угловой скоростью и фактической (eq. 4.48);
-	float e2 = pStruct->omega_xd - omega_x;
+		//	Расчет ошибки между желаемой угловой скоростью и фактической (eq. 4.48);
+		e2 = pStruct->omega_xd - omega_x;
 
-	/*	Возведение в степень ошибки e2 */
-	e2 = PowerForIBSC(e2, pStruct->e2PowCoeff);
+		if (pStruct->tumblers.enablePowFunctFlag == REGUL_EN)
+		{
+			/*	Возведение в степень ошибки e2 */
+			e2 = PowerForIBSC(e2,
+			                  pStruct->e2PowCoeff);
+		}
+	}
 
 	// Коэффициент "b1" должен быть только положительным;
 	if (pStruct->b1 < 0.0f)
 	{
-		pStruct->b1 = 0.0f;
+		pStruct->b1 *= -1.0f;
 	}
 
 	//	Расчет управляющего воздействия (eq. 4.53);
@@ -190,9 +205,10 @@ void REGUL_Init_IntergralBackStep(
 	pStruct->phi_d_t1 = 0.0f;
 	pStruct->phi_d_deriv = 0.0f;
 
-	//	Значения переключателей;
-	pStruct->tumblers.e1TakeModule = REGUL_DIS;
-	pStruct->tumblers.phi_d_its_e1 = REGUL_DIS;
+	/* Значения переключателей */
+	pStruct->tumblers.e1TakeModuleFlag = REGUL_DIS;
+	pStruct->tumblers.phi_d_its_e1Flag = REGUL_DIS;
+	pStruct->tumblers.enablePowFunctFlag = REGUL_DIS;
 }
 
 /**
