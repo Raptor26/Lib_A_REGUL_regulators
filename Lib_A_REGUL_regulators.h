@@ -114,6 +114,11 @@ typedef struct
 	float saturation;
 
 	/**
+	 * @brief	Структура для дифференцирования переменной phi_d
+	 */
+	DIFF_differentiator_1_s phi_d_derivStruct;
+
+	/**
 	 * @brief	Переключатели режима работы регулятора;
 	 */
 	struct

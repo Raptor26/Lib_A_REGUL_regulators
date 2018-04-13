@@ -74,95 +74,53 @@ float RestrictionSaturation(
  *			with application to autonomous flying"
  */
 float REGUL_IntegralBackStep(
-                             REGUL_integ_back_step_s *pStruct,
-                             float phi_d,
-                             float phi,
-                             float omega_x)
+    REGUL_integ_back_step_s *pStruct,
+    float e1,
+    float phi_d,
+    float omega_x)
 {
-	/*	Ошибка положения (разница между текущим положением и желаемым) */
-	float e1 = 0.0f;
+	/*---- |Begin| --> Дифференцирование phi_d (т.е. желаемого положения) ----*/
+	/* Установка периода дифференцирования */
+	pStruct->phi_d_derivStruct.dT = pStruct->dT;
 
-	/* Ошибка скорости (разница между желаемой скростью и текущей)*/
-	float e2 = 0.0f;
+	/* Дифференцирование желаемого положения методом 1-го порядка */
+	float phi_d_deriv = DIFF_FindDifferent1(*pStruct->phi_d_derivStruct,
+	                                        phi_d);
+	/*---- |End  | <-- Дифференцирование phi_d (т.е. желаемого положения) ----*/
 
-	//	Если необходимо "phi_d" интерпретировать как "e1":
-	if (pStruct->tumblers.phi_d_its_e1Flag == REGUL_EN)
-	{
-		e1 = phi_d;
-	}
-	//	Иначе штатный режим:
-	else
-	{
-		//	Разница между желаемым положением и текущим;
-		e1 = phi_d - phi;
-	}
-
-	//	Если необходимо взять ошибку по модулю:
-	if (pStruct->tumblers.e1TakeModuleFlag == REGUL_EN)
-	{
-		e1 = fabsf(e1);
-	}
-
-	if (pStruct->tumblers.enablePowFunctFlag == REGUL_EN)
-	{
-		/*	Возведение в степень ошибки e1 */
-		e1 = PowerForIBSC(e1,
-		                  pStruct->e1PowCoeff);
-	}
-
-	//--------------------------------------------------------------------------
-	/*	Дифференцирование желаемого положения */
-	//	Если "e1" рассчитывается в функции "REGUL_IntegralBackStep";
-	if (pStruct->tumblers.phi_d_its_e1Flag == REGUL_DIS)
-	{
-		//	Нахождение производной от желаемого углового положения;
-		pStruct->phi_d_deriv = (phi_d - pStruct->phi_d_t1) / pStruct->dT;
-
-		//	Текущее "желаемое положение" копируется в переменную "желаемое положение
-		//	на шаге <t-1>" для дифференцирования на при следующем вызове функции;
-		pStruct->phi_d_t1 = phi_d;
-	}
-	//--------------------------------------------------------------------------
-
-	//	Расчет интегральной состоавляющей (смотри комментарий к eq. 4.46);
+	/* Расчет интегральной состоавляющей (смотри комментарий к eq. 4.46) */
 	pStruct->chi += e1 * pStruct->lambda * pStruct->dT;
 
 	/*	Ограничение насыщения интегральной составляющей */
 	pStruct->chi = RestrictionSaturation(pStruct->chi,
 	                                     pStruct->saturation);
 
-	if (pStruct->tumblers.phi_d_its_e1Flag == REGUL_DIS)
-	{
-		//	Расчет желаемой угловой скорости (eq. 4.46);
-		pStruct->omega_xd = pStruct->c1 * e1
-		                    + pStruct->phi_d_deriv
-		                    + pStruct->lambda * pStruct->chi;
+	/* Расчет желаемой скорости (eq. 4.46) */
+	float omega_xd = pStruct->c1 * e1
+	                    + phi_d_deriv
+	                    + pStruct->lambda * pStruct->chi;
 
-		//	Расчет ошибки между желаемой угловой скоростью и фактической (eq. 4.48);
-		e2 = pStruct->omega_xd - omega_x;
+	/* Ограничение насыщения желаемой скорости */
+	omega_xd = RestrictionSaturation(omega_xd,
+	                                 pStruct->saturation);
+	
+	/* Расчет ошибки между желаемой скоростью и фактической (eq. 4.48) */
+	float e2 = omega_xd - omega_x;
 
-		if (pStruct->tumblers.enablePowFunctFlag == REGUL_EN)
-		{
-			/*	Возведение в степень ошибки e2 */
-			e2 = PowerForIBSC(e2,
-			                  pStruct->e2PowCoeff);
-		}
-	}
-
-	// Коэффициент "b1" должен быть только положительным;
+	/* Коэффициент "b1" должен быть только положительным */
 	if (pStruct->b1 < 0.0f)
 	{
 		pStruct->b1 *= -1.0f;
 	}
 
-	//	Расчет управляющего воздействия (eq. 4.53);
-	float returnValue = 1 / pStruct->b1
+	/* Расчет управляющего воздействия (eq. 4.53) */
+	float returnValue = (1 / pStruct->b1)
 	                    * (1 - pStruct->c1 * pStruct->c1 + pStruct->lambda)
 	                    * e1
-	                    + (pStruct->c1 + pStruct->c2) * e2
-	                    - pStruct->c1 * pStruct->lambda * pStruct->chi;
+	                    + ((pStruct->c1 + pStruct->c2) * e2)
+	                    - (pStruct->c1 * pStruct->lambda * pStruct->chi);
 
-	/*	Ограничение насыщения выходного параметра */
+	/* Ограничение насыщения выходного параметра */
 	returnValue = RestrictionSaturation(returnValue,
 	                                    pStruct->saturation);
 
@@ -176,7 +134,6 @@ float REGUL_IntegralBackStep(
 #endif
 
 	return returnValue;
-
 }
 
 /**
