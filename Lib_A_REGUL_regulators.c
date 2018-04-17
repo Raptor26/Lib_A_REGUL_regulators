@@ -25,6 +25,8 @@ float g_e1;
 float g_e2;
 float g_IntegralBackStepReturnValue;
 float g_omega_x;
+float g_omega_xd;
+float g_phi_d_deriv;
 float g_chi;
 float g_b1;
 #endif
@@ -120,6 +122,23 @@ float REGUL_IntegralBackStep(
 	                    + ((pStruct->c1 + pStruct->c2) * e2)
 	                    - (pStruct->c1 * pStruct->lambda * pStruct->chi);
 
+	/* |Begin| --> Взятие второй производной от e1 ---------------------------*/
+	pStruct->e1_FirstDerivStruct.dT = pStruct->dT;
+	pStruct->e1_SecontDerivStruct.dT = pStruct->dT;
+
+	/* Нахождение первой производной от e1 */
+	float e1DerivTemp = DIFF_FindDifferent1(&pStruct->e1_FirstDerivStruct,
+	                                        e1);
+
+	/* Нахождение второй производной от e1 */
+//	e1DerivTemp = DIFF_FindDifferent1(&pStruct->e1_SecontDerivStruct,
+//	                                  e1DerivTemp);
+
+	/* Добавление второй производной от ошибки положения в результат
+	 * работы Integral Back Step Control */
+	returnValue += e1DerivTemp * pStruct->e1SecondDerivCoeff;
+	/* |End  | <-- Взятие второй производной от e1 ---------------------------*/
+
 	/* Ограничение насыщения выходного параметра */
 	returnValue = RestrictionSaturation(returnValue,
 	                                    pStruct->saturation);
@@ -129,6 +148,8 @@ float REGUL_IntegralBackStep(
 	g_e2 = e2;
 	g_IntegralBackStepReturnValue = returnValue;
 	g_omega_x = omega_x;
+	g_omega_xd = omega_xd;
+	g_phi_d_deriv = phi_d_deriv;
 	g_chi = pStruct->chi;
 	g_b1 = pStruct->b1;
 #endif
@@ -150,7 +171,7 @@ void REGUL_Init_IntergralBackStep(
                                   REGUL_integ_back_step_s *pStruct)
 {
 	pStruct->dT = 0.0f;
-	pStruct->c1 = 0.0f;
+	pStruct->c1 = 1.0f;
 	pStruct->c2 = 0.0f;
 	pStruct->lambda = 0.0f;
 	pStruct->b1 = 1.0f;
@@ -161,6 +182,7 @@ void REGUL_Init_IntergralBackStep(
 	pStruct->omega_xd = 0.0f;
 	pStruct->phi_d_t1 = 0.0f;
 	pStruct->phi_d_deriv = 0.0f;
+	pStruct->e1SecondDerivCoeff = 1.0f;
 
 	/* Значения переключателей */
 	pStruct->tumblers.e1TakeModuleFlag = REGUL_DIS;

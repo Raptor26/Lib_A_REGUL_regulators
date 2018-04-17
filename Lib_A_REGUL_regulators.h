@@ -65,6 +65,11 @@ typedef struct
 	 * @see		eq. 4.53;
 	 */
 	float b1;
+
+	/**
+	 * @brief	Коэффициент для второй производной от e1
+	 */
+	float e1SecondDerivCoeff;
 	/*---- |End  | <-- Коэффициенты регулятора -------------------------------*/
 
 	/**
@@ -117,6 +122,12 @@ typedef struct
 	 * @brief	Структура для дифференцирования переменной phi_d
 	 */
 	DIFF_differentiator_1_s phi_d_derivStruct;
+
+	/*
+	 * @brief	Структура для дифференцирования e1
+	 */
+	DIFF_differentiator_1_s e1_FirstDerivStruct,
+	    e1_SecontDerivStruct;
 
 	/**
 	 * @brief	Переключатели режима работы регулятора;
@@ -188,6 +199,8 @@ extern float g_e1;
 extern float g_e2;
 extern float g_IntegralBackStepReturnValue;
 extern float g_omega_x;
+extern float g_omega_xd;
+extern float g_phi_d_deriv;
 extern float g_chi;
 extern float g_b1;
 #endif
