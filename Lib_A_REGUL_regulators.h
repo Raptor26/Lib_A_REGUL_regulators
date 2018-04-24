@@ -230,6 +230,11 @@ REGUL_PIDRegulator(
         REGUL_pid_regulator_s *pData_struct,
         float error,
         float derivError);
+
+extern float
+REGUL_PowerFunc (
+              float basis,
+              float exponent);
 /******************************************************************************/
 
 

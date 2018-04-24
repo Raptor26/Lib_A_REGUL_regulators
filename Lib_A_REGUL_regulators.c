@@ -41,9 +41,6 @@ float g_b1;
 
 /******************************************************************************/
 // 	Секция прототипов локальных функций
-float PowerForIBSC (
-                    float basis,
-                    float exponent);
 float RestrictionSaturation (
                              float value,
                              float saturation);
@@ -288,7 +285,7 @@ REGUL_PIDRegulator (
  * @return
  */
 float
-PowerForIBSC (
+REGUL_PowerFunc (
               float basis,
               float exponent)
 {
