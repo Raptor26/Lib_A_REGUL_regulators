@@ -41,9 +41,10 @@ float g_b1;
 
 /******************************************************************************/
 //  Секция прототипов локальных функций
-float RestrictionSaturation (
-	float value,
-	float saturation);
+REGUL_FLOAT_POINT_TYPE
+RestrictionSaturation (
+	REGUL_FLOAT_POINT_TYPE value,
+	REGUL_FLOAT_POINT_TYPE saturation);
 /******************************************************************************/
 
 
@@ -202,14 +203,14 @@ REGUL_Init_IBSC (
 	pStruct->tumblers.enablePowFunctFlag = REGUL_DIS;
 }
 
-float
-REGUL_Get_PID (
+REGUL_FLOAT_POINT_TYPE
+REGUL_Get_PID(
 	regul_pid_s *pPID_s,
-	float err,
-	float errDeriv)
+	REGUL_FLOAT_POINT_TYPE err,
+	REGUL_FLOAT_POINT_TYPE errDeriv)
 {
 	/* Применение пропорциональной коррекции */
-	float returnVal = err * pPID_s->kP;
+	REGUL_FLOAT_POINT_TYPE returnVal = err * pPID_s->kP;
 
 	/* Обновление интегральной коррекции */
 	pPID_s->integVal += err * pPID_s->kI;
@@ -235,40 +236,41 @@ REGUL_Get_PID (
 	return returnVal;
 }
 
-void REGUL_Init_PID (
+void REGUL_Init_PID(
 	regul_pid_s *pDID_s,
-	float kP,
-	float kI,
-	float kD,
-	float dT,
-	float returnValSaturation,
-	float interValSaturation)
+	REGUL_FLOAT_POINT_TYPE kP,
+	REGUL_FLOAT_POINT_TYPE kI,
+	REGUL_FLOAT_POINT_TYPE kD,
+	REGUL_FLOAT_POINT_TYPE dT,
+	REGUL_FLOAT_POINT_TYPE returnValSaturation,
+	REGUL_FLOAT_POINT_TYPE integValSaturation)
 {
 	pDID_s->kP = kP;
 	pDID_s->kI = kI;
 	pDID_s->kD = kD;
 	pDID_s->dT = dT;
-	pDID_s->integValSaturation = interValSaturation;
+	pDID_s->integValSaturation = integValSaturation;
 	pDID_s->returnValSaturation = returnValSaturation;
-	pDID_s->integVal = 0.0f;
+	pDID_s->integVal = (REGUL_FLOAT_POINT_TYPE) 0.0;
 }
 
-float
+REGUL_FLOAT_POINT_TYPE
 REGUL_MixTwoVal(
-	float firstVal,
-	float secondVal,
-	float coeff)
+	REGUL_FLOAT_POINT_TYPE firstVal,
+	REGUL_FLOAT_POINT_TYPE secondVal,
+	REGUL_FLOAT_POINT_TYPE mixCoeff)
 {
-	if (coeff > 1.0f)
+	if (mixCoeff > (REGUL_FLOAT_POINT_TYPE) 1.0)
 	{
-		coeff = 1.0f;
+		mixCoeff = (REGUL_FLOAT_POINT_TYPE) 1.0;
 	}
-	if (coeff < 0.0f)
+	if (mixCoeff < (REGUL_FLOAT_POINT_TYPE) 0.0)
 	{
-		coeff = 1.0f;
+		mixCoeff = (REGUL_FLOAT_POINT_TYPE) 1.0;
 	}
 
-	return (firstVal * coeff) + ((1 - coeff) * secondVal);
+	return (firstVal * mixCoeff)
+		   + (((REGUL_FLOAT_POINT_TYPE) 1.0 - mixCoeff) * secondVal);
 }
 /*============================================================================*/
 
@@ -316,14 +318,14 @@ REGUL_PowerFunc (
  *                          переменную "value"
  * @return  Значение переменной "value", с учетом значения насыщения "saturation";
  */
-float
+REGUL_FLOAT_POINT_TYPE
 RestrictionSaturation (
-	float value,
-	float saturation)
+	REGUL_FLOAT_POINT_TYPE value,
+	REGUL_FLOAT_POINT_TYPE saturation)
 {
 	/*    Ограничение насыщения выходного параметра */
-	//    Если переменная насыщения не равна "0.0f":
-	if (saturation != 0.0f)
+	//    Если переменная насыщения не равна "0.0":
+	if (saturation != (REGUL_FLOAT_POINT_TYPE) 0.0)
 	{
 		//    Если выходное значение больше положительного значения переменной насыщения:
 		if (value > saturation)

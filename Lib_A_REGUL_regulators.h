@@ -34,6 +34,10 @@
 
 /******************************************************************************/
 //  Секция определения констант
+#if !defined (REGUL_FLOAT_POINT_TYPE)
+#define REGUL_FLOAT_POINT_TYPE    float
+#endif
+
 #define REGUL_EN                                    1
 #define REGUL_DIS                                   0
 /******************************************************************************/
@@ -158,31 +162,31 @@ typedef struct
 
 typedef struct
 {
-	float kP;
+	REGUL_FLOAT_POINT_TYPE kP;
 
-	float kI;
+	REGUL_FLOAT_POINT_TYPE kI;
 
-	float kD;
+	REGUL_FLOAT_POINT_TYPE kD;
 
 	/**
-	 * @brief Интегральная состоавляющая ошибки
+	 * @brief Интегральная составляющая ошибки
 	 */
-	float integVal;
+	REGUL_FLOAT_POINT_TYPE integVal;
 
 	/**
 	 * @brief Величина шага для нахождения производной
 	 */
-	float dT;
+	REGUL_FLOAT_POINT_TYPE dT;
 
 	/**
 	 * @brief Значение насыщения возвращаемого регулятором значения
 	 */
-	float returnValSaturation;
+	REGUL_FLOAT_POINT_TYPE returnValSaturation;
 
 	/**
 	 * @brief Значение насыщения интегральной составляющей регулятора
 	 */
-	float integValSaturation;
+	REGUL_FLOAT_POINT_TYPE integValSaturation;
 } regul_pid_s;
 /******************************************************************************/
 
@@ -215,32 +219,27 @@ extern void
 REGUL_Init_IBSC(
 	regul_ibsc_s *pStruct);
 
-extern float
-REGUL_PI_regulator(
-	regul_pid_s *pSturct,
-	float error);
-
-extern float
+extern REGUL_FLOAT_POINT_TYPE
 REGUL_Get_PID(
 	regul_pid_s *pData_struct,
-	float error,
-	float derivError);
+	REGUL_FLOAT_POINT_TYPE err,
+	REGUL_FLOAT_POINT_TYPE derivErr);
 
 extern void
 REGUL_Init_PID (
 	regul_pid_s *pDID_s,
-	float kP,
-	float kI,
-	float kD,
-	float dT,
-	float returnValSaturation,
-	float interValSaturation);
+	REGUL_FLOAT_POINT_TYPE kP,
+	REGUL_FLOAT_POINT_TYPE kI,
+	REGUL_FLOAT_POINT_TYPE kD,
+	REGUL_FLOAT_POINT_TYPE dT,
+	REGUL_FLOAT_POINT_TYPE returnValSaturation,
+	REGUL_FLOAT_POINT_TYPE integValSaturation);
 
-extern float
+extern REGUL_FLOAT_POINT_TYPE
 REGUL_MixTwoVal(
-	float firstVal,
-	float secondVal,
-	float coeff);
+	REGUL_FLOAT_POINT_TYPE firstVal,
+	REGUL_FLOAT_POINT_TYPE secondVal,
+	REGUL_FLOAT_POINT_TYPE mixCoeff);
 
 extern float
 REGUL_PowerFunc (
