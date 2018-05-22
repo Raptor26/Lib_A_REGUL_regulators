@@ -252,6 +252,24 @@ void REGUL_Init_PID (
 	pDID_s->returnValSaturation = returnValSaturation;
 	pDID_s->integVal = 0.0f;
 }
+
+float
+REGUL_MixTwoVal(
+	float firstVal,
+	float secondVal,
+	float coeff)
+{
+	if (coeff > 1.0f)
+	{
+		coeff = 1.0f;
+	}
+	if (coeff < 0.0f)
+	{
+		coeff = 1.0f;
+	}
+
+	return (firstVal * coeff) + ((1 - coeff) * secondVal);
+}
 /*============================================================================*/
 
 /* Локальные функции */

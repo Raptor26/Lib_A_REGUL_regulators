@@ -226,7 +226,8 @@ REGUL_Get_PID(
 	float error,
 	float derivError);
 
-extern void REGUL_Init_PID (
+extern void
+REGUL_Init_PID (
 	regul_pid_s *pDID_s,
 	float kP,
 	float kI,
@@ -234,6 +235,12 @@ extern void REGUL_Init_PID (
 	float dT,
 	float returnValSaturation,
 	float interValSaturation);
+
+extern float
+REGUL_MixTwoVal(
+	float firstVal,
+	float secondVal,
+	float coeff);
 
 extern float
 REGUL_PowerFunc (
