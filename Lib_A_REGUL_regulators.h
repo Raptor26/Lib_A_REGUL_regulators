@@ -27,7 +27,8 @@
 
 /*============================================================================*/
 //  Внешние модули
-#include    "../Lib_A_DIFF_differentiators/Lib_A_DIFF_differentiators.h"
+#include "../Lib_A_DIFF_differentiators/Lib_A_DIFF_differentiators.h"
+#include "../Lib_A_NINTEG_numerical_integration/Lib_A_NINTEG_numerical_integration.h"
 /*============================================================================*/
 /******************************************************************************/
 
@@ -162,6 +163,7 @@ typedef struct
 
 typedef struct
 {
+
 	REGUL_FLOAT_POINT_TYPE kP;
 
 	REGUL_FLOAT_POINT_TYPE kI;
@@ -187,6 +189,8 @@ typedef struct
 	 * @brief Значение насыщения интегральной составляющей регулятора
 	 */
 	REGUL_FLOAT_POINT_TYPE integValSaturation;
+
+	NINTEG_find_delta_trapezium_s findDeltaTrap_s;
 } regul_pid_s;
 /******************************************************************************/
 

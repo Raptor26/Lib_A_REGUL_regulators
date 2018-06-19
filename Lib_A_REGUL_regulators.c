@@ -212,8 +212,12 @@ REGUL_Get_PID(
 	/* Применение пропорциональной коррекции */
 	REGUL_FLOAT_POINT_TYPE returnVal = err * pPID_s->kP;
 
-	/* Обновление интегральной коррекции */
-	pPID_s->integVal += err * pPID_s->kI;
+	/* Обновление интегральной коррекции (методом трапеций) */
+	pPID_s->integVal +=
+		(NINTEG_FindDeltaTrapezium (
+			 &pPID_s->findDeltaTrap_s,
+			 err))
+		* pPID_s->kI;
 
 	/* Ограничение насыщения интегральной коррекции */
 	pPID_s->integVal =
@@ -252,6 +256,7 @@ void REGUL_Init_PID(
 	pDID_s->integValSaturation = integValSaturation;
 	pDID_s->returnValSaturation = returnValSaturation;
 	pDID_s->integVal = (REGUL_FLOAT_POINT_TYPE) 0.0;
+	pDID_s->findDeltaTrap_s.dT = dT;
 }
 
 REGUL_FLOAT_POINT_TYPE
@@ -290,8 +295,8 @@ REGUL_PowerFunc (
 	//    Если степень, в которую необходимо возвести "basis" не равна "1.0f",
 	//    "-1.0f" или "0.0f":
 	if ((exponent != 1.0f)
-		|| (exponent != -1.0f)
-		|| (exponent != 0.0f))
+			|| (exponent != -1.0f)
+			|| (exponent != 0.0f))
 	{
 		//    Если "basis" положительное число;
 		if (basis >= 0.0f)
