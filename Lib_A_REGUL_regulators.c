@@ -210,32 +210,32 @@ REGUL_Get_PID(
 	REGUL_FLOAT_POINT_TYPE errDeriv)
 {
 	/* Применение пропорциональной коррекции */
-	REGUL_FLOAT_POINT_TYPE returnVal = err * pPID_s->kP;
+	REGUL_FLOAT_POINT_TYPE returnVal =
+		err * pPID_s->proportional_s.kP;
 
 	/* Обновление интегральной коррекции (методом трапеций) */
-	pPID_s->integVal +=
-		(NINTEG_FindDeltaTrapezium (
-			 &pPID_s->findDeltaTrap_s,
-			 err))
-		* pPID_s->kI;
+	pPID_s->integral_s.val +=
+		(NINTEG_Trapz (
+			 &pPID_s->integral_s.deltaTrap_s,
+			 err * pPID_s->integral_s.kI));
 
 	/* Ограничение насыщения интегральной коррекции */
-	pPID_s->integVal =
+	pPID_s->integral_s.val =
 		RestrictionSaturation(
-			pPID_s->integVal,
-			pPID_s->integValSaturation);
+			pPID_s->integral_s.val,
+			pPID_s->integral_s.satur);
 
 	/* Применение интегральной коррекции */
-	returnVal += pPID_s->integVal;
+	returnVal += pPID_s->integral_s.val;
 
 	/* Применение дифференциальной коррекции */
-	returnVal += errDeriv * pPID_s->kD;
+	returnVal += errDeriv * pPID_s->derivative_s.kD;
 
 	/* Ограничение насыщения возвращаемого регулятором значения */
 	returnVal =
 		RestrictionSaturation (
 			returnVal,
-			pPID_s->returnValSaturation);
+			pPID_s->pidValSatur);
 
 	return returnVal;
 }
@@ -246,17 +246,18 @@ void REGUL_Init_PID(
 	REGUL_FLOAT_POINT_TYPE kI,
 	REGUL_FLOAT_POINT_TYPE kD,
 	REGUL_FLOAT_POINT_TYPE dT,
-	REGUL_FLOAT_POINT_TYPE returnValSaturation,
+	REGUL_FLOAT_POINT_TYPE valSatur,
 	REGUL_FLOAT_POINT_TYPE integValSaturation)
 {
-	pDID_s->kP = kP;
-	pDID_s->kI = kI;
-	pDID_s->kD = kD;
+	pDID_s->proportional_s.kP = kP;
+	pDID_s->integral_s.kI = kI;
+	pDID_s->derivative_s.kD = kD;
 	pDID_s->dT = dT;
-	pDID_s->integValSaturation = integValSaturation;
-	pDID_s->returnValSaturation = returnValSaturation;
-	pDID_s->integVal = (REGUL_FLOAT_POINT_TYPE) 0.0;
-	pDID_s->findDeltaTrap_s.dT = dT;
+	pDID_s->integral_s.satur = integValSaturation;
+	pDID_s->pidValSatur = valSatur;
+	pDID_s->integral_s.val = (REGUL_FLOAT_POINT_TYPE) 0.0;
+	pDID_s->integral_s.deltaTrap_s.dT = dT;
+	pDID_s->integral_s.deltaTrap_s.tumblers_s.accumEn = 1;
 }
 
 REGUL_FLOAT_POINT_TYPE

@@ -163,34 +163,53 @@ typedef struct
 
 typedef struct
 {
+	struct
+	{
+		/**
+		 * @brief Коэффициент усиления для пропорциональной составляющей ошибки
+		 */
+		REGUL_FLOAT_POINT_TYPE kP;
+	} proportional_s;
 
-	REGUL_FLOAT_POINT_TYPE kP;
+	struct
+	{
+		REGUL_FLOAT_POINT_TYPE kI;
 
-	REGUL_FLOAT_POINT_TYPE kI;
+		/**
+		 * @brief Коэффициент усиления для интегральной составляющей ошибки
+		 */
+		REGUL_FLOAT_POINT_TYPE val;
 
-	REGUL_FLOAT_POINT_TYPE kD;
+		/**
+		 * @brief Значение насыщения интегральной составляющей регулятора
+		 */
+		REGUL_FLOAT_POINT_TYPE satur;
+
+		/**
+		 * @brief Структура для интегрирования методом трапеций. Необходима
+		 *        для нахождения интегральной составляющей регулятора
+		 */
+		ninteg_trapz_s deltaTrap_s;
+	} integral_s;
+
+	struct
+	{
+		/**
+		 * @brief Коэффициент усиления дифференциальной составляющей ошибки
+		 */
+		REGUL_FLOAT_POINT_TYPE kD;
+	} derivative_s;
 
 	/**
-	 * @brief Интегральная составляющая ошибки
-	 */
-	REGUL_FLOAT_POINT_TYPE integVal;
-
-	/**
-	 * @brief Величина шага для нахождения производной
+	 * @brief Величина шага для нахождения производной и нахождения
+	 *        интегральной составляющей методом трапеций
 	 */
 	REGUL_FLOAT_POINT_TYPE dT;
 
 	/**
 	 * @brief Значение насыщения возвращаемого регулятором значения
 	 */
-	REGUL_FLOAT_POINT_TYPE returnValSaturation;
-
-	/**
-	 * @brief Значение насыщения интегральной составляющей регулятора
-	 */
-	REGUL_FLOAT_POINT_TYPE integValSaturation;
-
-	NINTEG_find_delta_trapezium_s findDeltaTrap_s;
+	REGUL_FLOAT_POINT_TYPE pidValSatur;
 } regul_pid_s;
 /******************************************************************************/
 
