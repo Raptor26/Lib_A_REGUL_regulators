@@ -21,14 +21,14 @@
 /*============================================================================*/
 //  Глобальные переменные
 #if defined __REGUL_REGULATORS_DEBUG__
-float g_e1;
-float g_e2;
-float g_IntegralBackStepReturnValue;
-float g_omega_x;
-float g_omega_xd;
-float g_phi_d_deriv;
-float g_chi;
-float g_b1;
+__REGUL_FLOAT_POINT_TYPE__ g_e1;
+__REGUL_FLOAT_POINT_TYPE__ g_e2;
+__REGUL_FLOAT_POINT_TYPE__ g_IntegralBackStepReturnValue;
+__REGUL_FLOAT_POINT_TYPE__ g_omega_x;
+__REGUL_FLOAT_POINT_TYPE__ g_omega_xd;
+__REGUL_FLOAT_POINT_TYPE__ g_phi_d_deriv;
+__REGUL_FLOAT_POINT_TYPE__ g_chi;
+__REGUL_FLOAT_POINT_TYPE__ g_b1;
 #endif
 /*============================================================================*/
 
@@ -41,10 +41,10 @@ float g_b1;
 
 /******************************************************************************/
 //  Секция прототипов локальных функций
-REGUL_FLOAT_POINT_TYPE
+__REGUL_FLOAT_POINT_TYPE__
 RestrictionSaturation (
-	REGUL_FLOAT_POINT_TYPE value,
-	REGUL_FLOAT_POINT_TYPE saturation);
+	__REGUL_FLOAT_POINT_TYPE__ value,
+	__REGUL_FLOAT_POINT_TYPE__ saturation);
 /******************************************************************************/
 
 
@@ -73,19 +73,19 @@ RestrictionSaturation (
  * @note    см. eq. 4.45 - 4.53 в документе "Design and control of quadrotors
  *          with application to autonomous flying"
  */
-float
+__REGUL_FLOAT_POINT_TYPE__
 REGUL_Get_IBSC (
 	regul_ibsc_s *pStruct,
-	float e1,
-	float phi_d,
-	float omega_x)
+	__REGUL_FLOAT_POINT_TYPE__ e1,
+	__REGUL_FLOAT_POINT_TYPE__ phi_d,
+	__REGUL_FLOAT_POINT_TYPE__ omega_x)
 {
 	/*---- |Begin| --> Дифференцирование phi_d (т.е. желаемого положения) ----*/
 	/* Установка периода дифференцирования */
 	pStruct->phi_d_derivStruct.dT = pStruct->dT;
 
 	/* Дифференцирование желаемого положения методом 1-го порядка */
-	float phi_d_deriv =
+	__REGUL_FLOAT_POINT_TYPE__ phi_d_deriv =
 		DIFF_FindDifferent1 (
 			&pStruct->phi_d_derivStruct,
 			phi_d);
@@ -102,7 +102,7 @@ REGUL_Get_IBSC (
 			pStruct->saturation);
 
 	/* Расчет желаемой скорости (eq. 4.46) */
-	float omega_xd =
+	__REGUL_FLOAT_POINT_TYPE__ omega_xd =
 		pStruct->c1 * e1
 		+ phi_d_deriv
 		+ pStruct->lambda * pStruct->chi;
@@ -114,7 +114,7 @@ REGUL_Get_IBSC (
 			pStruct->saturation);
 
 	/* Расчет ошибки между желаемой скоростью и фактической (eq. 4.48) */
-	float e2 = omega_xd - omega_x;
+	__REGUL_FLOAT_POINT_TYPE__ e2 = omega_xd - omega_x;
 
 	/* Коэффициент "b1" должен быть только положительным */
 	if (pStruct->b1 < 0.0f)
@@ -123,7 +123,7 @@ REGUL_Get_IBSC (
 	}
 
 	/* Расчет управляющего воздействия (eq. 4.53) */
-	float returnValue =
+	__REGUL_FLOAT_POINT_TYPE__ returnValue =
 		(1 / pStruct->b1)
 		* (1 - pStruct->c1 * pStruct->c1 + pStruct->lambda)
 		* e1
@@ -135,7 +135,7 @@ REGUL_Get_IBSC (
 	pStruct->e1_SecontDerivStruct.dT = pStruct->dT;
 
 	/* Нахождение первой производной от e1 */
-	float e1DerivTemp =
+	__REGUL_FLOAT_POINT_TYPE__ e1DerivTemp =
 		DIFF_FindDifferent1 (
 			&pStruct->e1_FirstDerivStruct,
 			e1);
@@ -203,14 +203,14 @@ REGUL_Init_IBSC (
 	pStruct->tumblers.enablePowFunctFlag = REGUL_DIS;
 }
 
-REGUL_FLOAT_POINT_TYPE
+__REGUL_FLOAT_POINT_TYPE__
 REGUL_Get_PID(
 	regul_pid_s *pPID_s,
-	REGUL_FLOAT_POINT_TYPE err,
-	REGUL_FLOAT_POINT_TYPE errDeriv)
+	__REGUL_FLOAT_POINT_TYPE__ err,
+	__REGUL_FLOAT_POINT_TYPE__ errDeriv)
 {
 	/* Применение пропорциональной коррекции */
-	REGUL_FLOAT_POINT_TYPE returnVal =
+	__REGUL_FLOAT_POINT_TYPE__ returnVal =
 		err * pPID_s->proportional_s.kP;
 
 	/* Обновление интегральной коррекции (методом трапеций) */
@@ -242,12 +242,12 @@ REGUL_Get_PID(
 
 void REGUL_Init_PID(
 	regul_pid_s *pDID_s,
-	REGUL_FLOAT_POINT_TYPE kP,
-	REGUL_FLOAT_POINT_TYPE kI,
-	REGUL_FLOAT_POINT_TYPE kD,
-	REGUL_FLOAT_POINT_TYPE dT,
-	REGUL_FLOAT_POINT_TYPE valSatur,
-	REGUL_FLOAT_POINT_TYPE integValSaturation)
+	__REGUL_FLOAT_POINT_TYPE__ kP,
+	__REGUL_FLOAT_POINT_TYPE__ kI,
+	__REGUL_FLOAT_POINT_TYPE__ kD,
+	__REGUL_FLOAT_POINT_TYPE__ dT,
+	__REGUL_FLOAT_POINT_TYPE__ valSatur,
+	__REGUL_FLOAT_POINT_TYPE__ integValSaturation)
 {
 	pDID_s->proportional_s.kP = kP;
 	pDID_s->integral_s.kI = kI;
@@ -255,28 +255,28 @@ void REGUL_Init_PID(
 	pDID_s->dT = dT;
 	pDID_s->integral_s.satur = integValSaturation;
 	pDID_s->pidValSatur = valSatur;
-	pDID_s->integral_s.val = (REGUL_FLOAT_POINT_TYPE) 0.0;
+	pDID_s->integral_s.val = (__REGUL_FLOAT_POINT_TYPE__) 0.0;
 	pDID_s->integral_s.deltaTrap_s.dT = dT;
 	pDID_s->integral_s.deltaTrap_s.tumblers_s.accumEn = 1;
 }
 
-REGUL_FLOAT_POINT_TYPE
+__REGUL_FLOAT_POINT_TYPE__
 REGUL_MixTwoVal(
-	REGUL_FLOAT_POINT_TYPE firstVal,
-	REGUL_FLOAT_POINT_TYPE secondVal,
-	REGUL_FLOAT_POINT_TYPE mixCoeff)
+	__REGUL_FLOAT_POINT_TYPE__ firstVal,
+	__REGUL_FLOAT_POINT_TYPE__ secondVal,
+	__REGUL_FLOAT_POINT_TYPE__ mixCoeff)
 {
-	if (mixCoeff > (REGUL_FLOAT_POINT_TYPE) 1.0)
+	if (mixCoeff > (__REGUL_FLOAT_POINT_TYPE__) 1.0)
 	{
-		mixCoeff = (REGUL_FLOAT_POINT_TYPE) 1.0;
+		mixCoeff = (__REGUL_FLOAT_POINT_TYPE__) 1.0;
 	}
-	if (mixCoeff < (REGUL_FLOAT_POINT_TYPE) 0.0)
+	if (mixCoeff < (__REGUL_FLOAT_POINT_TYPE__) 0.0)
 	{
-		mixCoeff = (REGUL_FLOAT_POINT_TYPE) 1.0;
+		mixCoeff = (__REGUL_FLOAT_POINT_TYPE__) 1.0;
 	}
 
 	return (firstVal * mixCoeff)
-		   + (((REGUL_FLOAT_POINT_TYPE) 1.0 - mixCoeff) * secondVal);
+		   + (((__REGUL_FLOAT_POINT_TYPE__) 1.0 - mixCoeff) * secondVal);
 }
 /*============================================================================*/
 
@@ -288,10 +288,10 @@ REGUL_MixTwoVal(
  * @rapam
  * @return
  */
-float
+__REGUL_FLOAT_POINT_TYPE__
 REGUL_PowerFunc (
-	float basis,
-	float exponent)
+	__REGUL_FLOAT_POINT_TYPE__ basis,
+	__REGUL_FLOAT_POINT_TYPE__ exponent)
 {
 	//    Если степень, в которую необходимо возвести "basis" не равна "1.0f",
 	//    "-1.0f" или "0.0f":
@@ -324,14 +324,14 @@ REGUL_PowerFunc (
  *                          переменную "value"
  * @return  Значение переменной "value", с учетом значения насыщения "saturation";
  */
-REGUL_FLOAT_POINT_TYPE
+__REGUL_FLOAT_POINT_TYPE__
 RestrictionSaturation (
-	REGUL_FLOAT_POINT_TYPE value,
-	REGUL_FLOAT_POINT_TYPE saturation)
+	__REGUL_FLOAT_POINT_TYPE__ value,
+	__REGUL_FLOAT_POINT_TYPE__ saturation)
 {
 	/*    Ограничение насыщения выходного параметра */
 	//    Если переменная насыщения не равна "0.0":
-	if (saturation != (REGUL_FLOAT_POINT_TYPE) 0.0)
+	if (saturation != (__REGUL_FLOAT_POINT_TYPE__) 0.0f)
 	{
 		//    Если выходное значение больше положительного значения переменной насыщения:
 		if (value > saturation)
