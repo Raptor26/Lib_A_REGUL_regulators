@@ -240,24 +240,76 @@ REGUL_Get_PID(
 	return returnVal;
 }
 
-void REGUL_Init_PID(
-	regul_pid_s *pDID_s,
-	__REGUL_FLOAT_POINT_TYPE__ kP,
-	__REGUL_FLOAT_POINT_TYPE__ kI,
-	__REGUL_FLOAT_POINT_TYPE__ kD,
-	__REGUL_FLOAT_POINT_TYPE__ dT,
-	__REGUL_FLOAT_POINT_TYPE__ valSatur,
-	__REGUL_FLOAT_POINT_TYPE__ integValSaturation)
+//void REGUL_Init_PID(
+//	regul_pid_s *pDID_s,
+//	__REGUL_FLOAT_POINT_TYPE__ kP,
+//	__REGUL_FLOAT_POINT_TYPE__ kI,
+//	__REGUL_FLOAT_POINT_TYPE__ kD,
+//	__REGUL_FLOAT_POINT_TYPE__ dT,
+//	__REGUL_FLOAT_POINT_TYPE__ valSatur,
+//	__REGUL_FLOAT_POINT_TYPE__ integValSaturation)
+//{
+//	pDID_s->proportional_s.kP = kP;
+//	pDID_s->integral_s.kI = kI;
+//	pDID_s->derivative_s.kD = kD;
+//	pDID_s->dT = dT;
+//	pDID_s->integral_s.satur = integValSaturation;
+//	pDID_s->pidValSatur = valSatur;
+//	pDID_s->integral_s.val = (__REGUL_FLOAT_POINT_TYPE__) 0.0;
+//	pDID_s->integral_s.deltaTrap_s.dT = dT;
+//	pDID_s->integral_s.deltaTrap_s.tumblers_s.accumEn = 1;
+//}
+
+regul_fnc_status_e
+REGUL_Init_PID(
+	regul_pid_s *p_s,
+	regul_pid_init_struct_s *pInit_s)
 {
-	pDID_s->proportional_s.kP = kP;
-	pDID_s->integral_s.kI = kI;
-	pDID_s->derivative_s.kD = kD;
-	pDID_s->dT = dT;
-	pDID_s->integral_s.satur = integValSaturation;
-	pDID_s->pidValSatur = valSatur;
-	pDID_s->integral_s.val = (__REGUL_FLOAT_POINT_TYPE__) 0.0;
-	pDID_s->integral_s.deltaTrap_s.dT = dT;
-	pDID_s->integral_s.deltaTrap_s.tumblers_s.accumEn = 1;
+	regul_fnc_status_e pidInitStatus_e;
+	if ((pInit_s->dT != (__REGUL_FLOAT_POINT_TYPE__) 0.0)
+			&& (pInit_s->returnValSaturation != (__REGUL_FLOAT_POINT_TYPE__) 0.0))
+	{
+		p_s->dT					= pInit_s->dT;
+		p_s->derivative_s.kD	= pInit_s->kD;
+		p_s->integral_s.kI		= pInit_s->kI;
+		p_s->integral_s.satur	= pInit_s->integralValSaturation;
+		p_s->pidValSatur		= pInit_s->returnValSaturation;
+		p_s->proportional_s.kP	= pInit_s->kP;
+		pidInitStatus_e =
+			REGUL_SUCCESS;
+	}
+	else
+	{
+		return (pidInitStatus_e = REGUL_ERROR);
+	}
+
+
+	/* Инициализация структуры для интегральной составляющей PID регулятора */
+	ninteg_trapz_InitStruct_s trapzInit_s;
+	NINTEG_Trapz_StructInit(&trapzInit_s);
+	trapzInit_s.accumulate_flag = 1u;
+	trapzInit_s.integratePeriod = pInit_s->dT;
+	ninteg_fnc_status_e trapzInitStatus_e =
+		NINTEG_Trapz_Init(
+			&p_s->integral_s.deltaTrap_s,
+			&trapzInit_s);
+
+	pidInitStatus_e = trapzInitStatus_e;
+
+	/* Возврат статуса инициализации */
+	return (pidInitStatus_e);
+}
+
+void
+REGUL_PID_StructInit(
+	regul_pid_init_struct_s *pInitStruct)
+{
+	pInitStruct->dT =						(__REGUL_FLOAT_POINT_TYPE__) 0.0;
+	pInitStruct->integralValSaturation =	(__REGUL_FLOAT_POINT_TYPE__) 0.0;
+	pInitStruct->kD =						(__REGUL_FLOAT_POINT_TYPE__) 0.0;
+	pInitStruct->kI =						(__REGUL_FLOAT_POINT_TYPE__) 0.0;
+	pInitStruct->kP =						(__REGUL_FLOAT_POINT_TYPE__) 0.0;
+	pInitStruct->returnValSaturation =		(__REGUL_FLOAT_POINT_TYPE__) 0.0;
 }
 
 __REGUL_FLOAT_POINT_TYPE__
