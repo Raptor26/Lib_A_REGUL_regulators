@@ -225,14 +225,29 @@ typedef struct
 	 */
 	__REGUL_FLOAT_POINT_TYPE__ dT;
 
+	/**
+	 * @brief	Коэффициент пропорциональной составляющей регулятора
+	 */
 	__REGUL_FLOAT_POINT_TYPE__ kP;
 
+	/**
+	 * @brief	Коэффициент интегральной составляющей регулятора
+	 */
 	__REGUL_FLOAT_POINT_TYPE__ kI;
 
+	/**
+	 * @brief	Коэффициент дифференциальной составляющей регулятора
+	 */
 	__REGUL_FLOAT_POINT_TYPE__ kD;
 
+	/**
+	 * @brief	Значение насыщения интегральной составляющей регулятора
+	 */
 	__REGUL_FLOAT_POINT_TYPE__ integralValSaturation;
 
+	/**
+	 * @brief	Значение насыщения выходной величины ПИД регулятора
+	 */
 	__REGUL_FLOAT_POINT_TYPE__ returnValSaturation;
 } regul_pid_init_struct_s;
 /******************************************************************************/

@@ -260,11 +260,22 @@ REGUL_Get_PID(
 //	pDID_s->integral_s.deltaTrap_s.tumblers_s.accumEn = 1;
 //}
 
+/**
+ * @brief	Функция выполняет инициализацию структуры ПИД регулятора
+ * @param[out]	*p_s:	Указатель на структуру ПИД регулятора
+ * @param[in]	*pInit_s:	Указатель на структуру, в которой содержатся 
+ *							параметры для инициализации структуры ПИД регулятора
+ * @return	regul_fnc_status_e:
+ *			- REGUL_ERROR:	Если неверно задан один из параметров структуры 
+ *							regul_pid_init_struct_s
+ *			- REGUL_SUCCESS:		Инициализация прошла успешно
+ */
 regul_fnc_status_e
 REGUL_Init_PID(
 	regul_pid_s *p_s,
 	regul_pid_init_struct_s *pInit_s)
 {
+	/* Инициализация структуры ПИД регулятора*/
 	regul_fnc_status_e pidInitStatus_e;
 	if ((pInit_s->dT != (__REGUL_FLOAT_POINT_TYPE__) 0.0)
 			&& (pInit_s->returnValSaturation != (__REGUL_FLOAT_POINT_TYPE__) 0.0))
@@ -283,7 +294,6 @@ REGUL_Init_PID(
 		return (pidInitStatus_e = REGUL_ERROR);
 	}
 
-
 	/* Инициализация структуры для интегральной составляющей PID регулятора */
 	ninteg_trapz_InitStruct_s trapzInit_s;
 	NINTEG_Trapz_StructInit(&trapzInit_s);
@@ -293,7 +303,6 @@ REGUL_Init_PID(
 		NINTEG_Trapz_Init(
 			&p_s->integral_s.deltaTrap_s,
 			&trapzInit_s);
-
 	pidInitStatus_e = trapzInitStatus_e;
 
 	/* Возврат статуса инициализации */
