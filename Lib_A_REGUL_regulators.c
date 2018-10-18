@@ -226,7 +226,7 @@ REGUL_Get_PID(
 		err * pPID_s->proportional_s.kP;
 
 	/* Обновление интегральной коррекции (методом трапеций) */
-	pPID_s->integral_s.val +=
+	pPID_s->integral_s.val =
 		(__REGUL_FPT__) NINTEG_Trapz(
 			&pPID_s->integral_s.deltaTrap_s,
 			err * pPID_s->integral_s.kI);
@@ -247,8 +247,7 @@ REGUL_Get_PID(
 		returnVal +=
 			((__REGUL_FPT__) DIFF_GetDifferent1(
 				 &pPID_s->derivative_s.different1_s,
-				 err))
-			* pPID_s->derivative_s.kD;
+				 err * pPID_s->derivative_s.kD));
 	}
 	/* Иначе, если значение дифференциальной составляющей передано в функцию */
 	else
@@ -326,8 +325,9 @@ REGUL_Init_PID(
 		&trapzInit_s);
 
 	/* Инициализация параметров структуры */
-	trapzInit_s.accumulate_flag = 1u;
-	trapzInit_s.integratePeriod = pInit_s->dT;
+	trapzInit_s.accumulate_flag			= NINTEG_ENABLE;
+	trapzInit_s.integratePeriod			= pInit_s->dT;
+	trapzInit_s.accumDataSaturation		= pInit_s->integralValSaturation;
 
 	/* Инициализация структуры интегрирования */
 	ninteg_fnc_status_e trapzInitStatus_e =
