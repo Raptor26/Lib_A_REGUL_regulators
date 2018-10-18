@@ -47,6 +47,12 @@
 /******************************************************************************/
 //  Секция определения типов
 
+typedef enum
+{
+	REGUL_ERROR = 0,
+	REGUL_SUCCESS,
+} regul_fnc_status_e;
+
 /**
  * @brief   Структура, содержащая переменные для работы IBSC регулятора;
  */
@@ -211,6 +217,39 @@ typedef struct
 	 */
 	__REGUL_FLOAT_POINT_TYPE__ pidValSatur;
 } regul_pid_s;
+
+typedef struct
+{
+	/**
+	 * @brief Период интегрирования/дифференцирования
+	 */
+	__REGUL_FLOAT_POINT_TYPE__ dT;
+
+	/**
+	 * @brief	Коэффициент пропорциональной составляющей регулятора
+	 */
+	__REGUL_FLOAT_POINT_TYPE__ kP;
+
+	/**
+	 * @brief	Коэффициент интегральной составляющей регулятора
+	 */
+	__REGUL_FLOAT_POINT_TYPE__ kI;
+
+	/**
+	 * @brief	Коэффициент дифференциальной составляющей регулятора
+	 */
+	__REGUL_FLOAT_POINT_TYPE__ kD;
+
+	/**
+	 * @brief	Значение насыщения интегральной составляющей регулятора
+	 */
+	__REGUL_FLOAT_POINT_TYPE__ integralValSaturation;
+
+	/**
+	 * @brief	Значение насыщения выходной величины ПИД регулятора
+	 */
+	__REGUL_FLOAT_POINT_TYPE__ returnValSaturation;
+} regul_pid_init_struct_s;
 /******************************************************************************/
 
 
@@ -248,15 +287,24 @@ REGUL_Get_PID(
 	__REGUL_FLOAT_POINT_TYPE__ err,
 	__REGUL_FLOAT_POINT_TYPE__ derivErr);
 
+//extern void
+//REGUL_Init_PID (
+//	regul_pid_s *pDID_s,
+//	__REGUL_FLOAT_POINT_TYPE__ kP,
+//	__REGUL_FLOAT_POINT_TYPE__ kI,
+//	__REGUL_FLOAT_POINT_TYPE__ kD,
+//	__REGUL_FLOAT_POINT_TYPE__ dT,
+//	__REGUL_FLOAT_POINT_TYPE__ returnValSaturation,
+//	__REGUL_FLOAT_POINT_TYPE__ integValSaturation);
+
+extern regul_fnc_status_e
+REGUL_Init_PID(
+	regul_pid_s *p_s,
+	regul_pid_init_struct_s *pInit_s);
+
 extern void
-REGUL_Init_PID (
-	regul_pid_s *pDID_s,
-	__REGUL_FLOAT_POINT_TYPE__ kP,
-	__REGUL_FLOAT_POINT_TYPE__ kI,
-	__REGUL_FLOAT_POINT_TYPE__ kD,
-	__REGUL_FLOAT_POINT_TYPE__ dT,
-	__REGUL_FLOAT_POINT_TYPE__ returnValSaturation,
-	__REGUL_FLOAT_POINT_TYPE__ integValSaturation);
+REGUL_PID_StructInit(
+	regul_pid_init_struct_s *pInitStruct);
 
 extern __REGUL_FLOAT_POINT_TYPE__
 REGUL_MixTwoVal(
