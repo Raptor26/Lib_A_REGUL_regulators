@@ -204,11 +204,11 @@ typedef struct
 		 * @brief Коэффициент усиления дифференциальной составляющей ошибки
 		 */
 		__REGUL_FPT__ kD;
-        
-        /**
-         * @brief Стуктура для дифференцирования методом 1-го порядка
-         */
-        diff_differentiator_1_s different1_s;
+
+		/**
+		 * @brief Стуктура для дифференцирования методом 1-го порядка
+		 */
+		diff_differentiator_1_s different1_s;
 	} derivative_s;
 
 	/**
