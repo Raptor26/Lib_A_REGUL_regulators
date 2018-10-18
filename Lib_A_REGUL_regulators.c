@@ -86,7 +86,7 @@ REGUL_Get_IBSC (
 
 	/* Дифференцирование желаемого положения методом 1-го порядка */
 	__REGUL_FLOAT_POINT_TYPE__ phi_d_deriv =
-		DIFF_FindDifferent1 (
+		DIFF_GetDifferent1 (
 			&pStruct->phi_d_derivStruct,
 			phi_d);
 	/*---- |End  | <-- Дифференцирование phi_d (т.е. желаемого положения) ----*/
@@ -136,7 +136,7 @@ REGUL_Get_IBSC (
 
 	/* Нахождение первой производной от e1 */
 	__REGUL_FLOAT_POINT_TYPE__ e1DerivTemp =
-		DIFF_FindDifferent1 (
+		DIFF_GetDifferent1 (
 			&pStruct->e1_FirstDerivStruct,
 			e1);
 
@@ -228,8 +228,17 @@ REGUL_Get_PID(
 	/* Применение интегральной коррекции */
 	returnVal += pPID_s->integral_s.val;
 
-	/* Применение дифференциальной коррекции */
-	returnVal += errDeriv * pPID_s->derivative_s.kD;
+	/* Если значение дифференциальной составляющей регулятора равно нулю */
+	if (errDeriv == NULL)
+	{
+
+	}
+	/* Иначе, если значение дифференциальной составляющей передано в функцию */
+	else
+	{
+		/* Применение дифференциальной коррекции */
+		returnVal += errDeriv * pPID_s->derivative_s.kD;
+	}
 
 	/* Ограничение насыщения возвращаемого регулятором значения */
 	returnVal =
@@ -263,10 +272,10 @@ REGUL_Get_PID(
 /**
  * @brief	Функция выполняет инициализацию структуры ПИД регулятора
  * @param[out]	*p_s:	Указатель на структуру ПИД регулятора
- * @param[in]	*pInit_s:	Указатель на структуру, в которой содержатся 
+ * @param[in]	*pInit_s:	Указатель на структуру, в которой содержатся
  *							параметры для инициализации структуры ПИД регулятора
  * @return	regul_fnc_status_e:
- *			- REGUL_ERROR:	Если неверно задан один из параметров структуры 
+ *			- REGUL_ERROR:	Если неверно задан один из параметров структуры
  *							regul_pid_init_struct_s
  *			- REGUL_SUCCESS:		Инициализация прошла успешно
  */
@@ -296,14 +305,35 @@ REGUL_Init_PID(
 
 	/* Инициализация структуры для интегральной составляющей PID регулятора */
 	ninteg_trapz_InitStruct_s trapzInit_s;
-	NINTEG_Trapz_StructInit(&trapzInit_s);
+	NINTEG_Trapz_StructInit(
+		&trapzInit_s);
+
+	/* Инициализация параметров структуры */
 	trapzInit_s.accumulate_flag = 1u;
 	trapzInit_s.integratePeriod = pInit_s->dT;
+
+	/* Инициализация структуры интегрирования */
 	ninteg_fnc_status_e trapzInitStatus_e =
 		NINTEG_Trapz_Init(
 			&p_s->integral_s.deltaTrap_s,
 			&trapzInit_s);
 	pidInitStatus_e = trapzInitStatus_e;
+
+	/* Инициализация структуры для дифференцирования */
+	diff_differentiation_1_init_struct_s diffInit_s;
+	DIFF_Different1_StructInit(
+		&diffInit_s);
+
+	/* Инициализация параметров структуры */
+	diffInit_s.dT = pInit_s->dT;
+
+	/* Инициализация структуры дифференцирования */
+	diff_fnc_status_e different1InitStatus_e = DIFF_ERROR;
+	different1InitStatus_e =
+		DIFF_Init_Different1(
+			&p_s->derivative_s.different1_s,
+			&diffInit_s);
+	pidInitStatus_e = different1InitStatus_e;
 
 	/* Возврат статуса инициализации */
 	return (pidInitStatus_e);

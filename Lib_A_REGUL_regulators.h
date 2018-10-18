@@ -133,12 +133,12 @@ typedef struct
 	/**
 	 * @brief Структура для дифференцирования переменной phi_d
 	 */
-	DIFF_differentiator_1_s phi_d_derivStruct;
+	diff_differentiator_1_s phi_d_derivStruct;
 
 	/*
 	 * @brief Структура для дифференцирования e1
 	 */
-	DIFF_differentiator_1_s e1_FirstDerivStruct,
+	diff_differentiator_1_s e1_FirstDerivStruct,
 							e1_SecontDerivStruct;
 
 	/**
@@ -204,6 +204,11 @@ typedef struct
 		 * @brief Коэффициент усиления дифференциальной составляющей ошибки
 		 */
 		__REGUL_FLOAT_POINT_TYPE__ kD;
+        
+        /**
+         * @brief Стуктура для дифференцирования методом 1-го порядка
+         */
+        diff_differentiator_1_s different1_s;
 	} derivative_s;
 
 	/**
