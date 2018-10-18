@@ -21,14 +21,14 @@
 /*============================================================================*/
 //  Глобальные переменные
 #if defined __REGUL_REGULATORS_DEBUG__
-__REGUL_FLOAT_POINT_TYPE__ g_e1;
-__REGUL_FLOAT_POINT_TYPE__ g_e2;
-__REGUL_FLOAT_POINT_TYPE__ g_IntegralBackStepReturnValue;
-__REGUL_FLOAT_POINT_TYPE__ g_omega_x;
-__REGUL_FLOAT_POINT_TYPE__ g_omega_xd;
-__REGUL_FLOAT_POINT_TYPE__ g_phi_d_deriv;
-__REGUL_FLOAT_POINT_TYPE__ g_chi;
-__REGUL_FLOAT_POINT_TYPE__ g_b1;
+__REGUL_FPT__ g_e1;
+__REGUL_FPT__ g_e2;
+__REGUL_FPT__ g_IntegralBackStepReturnValue;
+__REGUL_FPT__ g_omega_x;
+__REGUL_FPT__ g_omega_xd;
+__REGUL_FPT__ g_phi_d_deriv;
+__REGUL_FPT__ g_chi;
+__REGUL_FPT__ g_b1;
 #endif
 /*============================================================================*/
 
@@ -41,10 +41,10 @@ __REGUL_FLOAT_POINT_TYPE__ g_b1;
 
 /******************************************************************************/
 //  Секция прототипов локальных функций
-__REGUL_FLOAT_POINT_TYPE__
+__REGUL_FPT__
 RestrictionSaturation (
-	__REGUL_FLOAT_POINT_TYPE__ value,
-	__REGUL_FLOAT_POINT_TYPE__ saturation);
+	__REGUL_FPT__ value,
+	__REGUL_FPT__ saturation);
 /******************************************************************************/
 
 
@@ -73,19 +73,19 @@ RestrictionSaturation (
  * @note    см. eq. 4.45 - 4.53 в документе "Design and control of quadrotors
  *          with application to autonomous flying"
  */
-__REGUL_FLOAT_POINT_TYPE__
+__REGUL_FPT__
 REGUL_Get_IBSC (
 	regul_ibsc_s *pStruct,
-	__REGUL_FLOAT_POINT_TYPE__ e1,
-	__REGUL_FLOAT_POINT_TYPE__ phi_d,
-	__REGUL_FLOAT_POINT_TYPE__ omega_x)
+	__REGUL_FPT__ e1,
+	__REGUL_FPT__ phi_d,
+	__REGUL_FPT__ omega_x)
 {
 	/*---- |Begin| --> Дифференцирование phi_d (т.е. желаемого положения) ----*/
 	/* Установка периода дифференцирования */
 	pStruct->phi_d_derivStruct.dT = pStruct->dT;
 
 	/* Дифференцирование желаемого положения методом 1-го порядка */
-	__REGUL_FLOAT_POINT_TYPE__ phi_d_deriv =
+	__REGUL_FPT__ phi_d_deriv =
 		DIFF_GetDifferent1 (
 			&pStruct->phi_d_derivStruct,
 			phi_d);
@@ -102,7 +102,7 @@ REGUL_Get_IBSC (
 			pStruct->saturation);
 
 	/* Расчет желаемой скорости (eq. 4.46) */
-	__REGUL_FLOAT_POINT_TYPE__ omega_xd =
+	__REGUL_FPT__ omega_xd =
 		pStruct->c1 * e1
 		+ phi_d_deriv
 		+ pStruct->lambda * pStruct->chi;
@@ -114,7 +114,7 @@ REGUL_Get_IBSC (
 			pStruct->saturation);
 
 	/* Расчет ошибки между желаемой скоростью и фактической (eq. 4.48) */
-	__REGUL_FLOAT_POINT_TYPE__ e2 = omega_xd - omega_x;
+	__REGUL_FPT__ e2 = omega_xd - omega_x;
 
 	/* Коэффициент "b1" должен быть только положительным */
 	if (pStruct->b1 < 0.0f)
@@ -123,7 +123,7 @@ REGUL_Get_IBSC (
 	}
 
 	/* Расчет управляющего воздействия (eq. 4.53) */
-	__REGUL_FLOAT_POINT_TYPE__ returnValue =
+	__REGUL_FPT__ returnValue =
 		(1 / pStruct->b1)
 		* (1 - pStruct->c1 * pStruct->c1 + pStruct->lambda)
 		* e1
@@ -135,7 +135,7 @@ REGUL_Get_IBSC (
 	pStruct->e1_SecontDerivStruct.dT = pStruct->dT;
 
 	/* Нахождение первой производной от e1 */
-	__REGUL_FLOAT_POINT_TYPE__ e1DerivTemp =
+	__REGUL_FPT__ e1DerivTemp =
 		DIFF_GetDifferent1 (
 			&pStruct->e1_FirstDerivStruct,
 			e1);
@@ -203,21 +203,21 @@ REGUL_Init_IBSC (
 	pStruct->tumblers.enablePowFunctFlag = REGUL_DIS;
 }
 
-__REGUL_FLOAT_POINT_TYPE__
+__REGUL_FPT__
 REGUL_Get_PID(
 	regul_pid_s *pPID_s,
-	__REGUL_FLOAT_POINT_TYPE__ err,
-	__REGUL_FLOAT_POINT_TYPE__ errDeriv)
+	__REGUL_FPT__ err,
+	__REGUL_FPT__ errDeriv)
 {
 	/* Применение пропорциональной коррекции */
-	__REGUL_FLOAT_POINT_TYPE__ returnVal =
+	__REGUL_FPT__ returnVal =
 		err * pPID_s->proportional_s.kP;
 
 	/* Обновление интегральной коррекции (методом трапеций) */
 	pPID_s->integral_s.val +=
-		(NINTEG_Trapz (
-			 &pPID_s->integral_s.deltaTrap_s,
-			 err * pPID_s->integral_s.kI));
+		(__REGUL_FPT__) NINTEG_Trapz(
+			&pPID_s->integral_s.deltaTrap_s,
+			err * pPID_s->integral_s.kI);
 
 	/* Ограничение насыщения интегральной коррекции */
 	pPID_s->integral_s.val =
@@ -233,7 +233,7 @@ REGUL_Get_PID(
 	{
 		/* Расчет дифференциальной составляющей регулятора и её применение */
 		returnVal +=
-			DIFF_GetDifferent1(
+			(__REGUL_FPT__) DIFF_GetDifferent1(
 				&pPID_s->derivative_s.different1_s,
 				err);
 	}
@@ -290,8 +290,8 @@ REGUL_Init_PID(
 {
 	/* Инициализация структуры ПИД регулятора*/
 	regul_fnc_status_e pidInitStatus_e;
-	if ((pInit_s->dT != (__REGUL_FLOAT_POINT_TYPE__) 0.0)
-			&& (pInit_s->returnValSaturation != (__REGUL_FLOAT_POINT_TYPE__) 0.0))
+	if ((pInit_s->dT != (__REGUL_FPT__) 0.0)
+			&& (pInit_s->returnValSaturation != (__REGUL_FPT__) 0.0))
 	{
 		p_s->dT					= pInit_s->dT;
 		p_s->derivative_s.kD	= pInit_s->kD;
@@ -347,31 +347,31 @@ void
 REGUL_PID_StructInit(
 	regul_pid_init_struct_s *pInitStruct)
 {
-	pInitStruct->dT =						(__REGUL_FLOAT_POINT_TYPE__) 0.0;
-	pInitStruct->integralValSaturation =	(__REGUL_FLOAT_POINT_TYPE__) 0.0;
-	pInitStruct->kD =						(__REGUL_FLOAT_POINT_TYPE__) 0.0;
-	pInitStruct->kI =						(__REGUL_FLOAT_POINT_TYPE__) 0.0;
-	pInitStruct->kP =						(__REGUL_FLOAT_POINT_TYPE__) 0.0;
-	pInitStruct->returnValSaturation =		(__REGUL_FLOAT_POINT_TYPE__) 0.0;
+	pInitStruct->dT =						(__REGUL_FPT__) 0.0;
+	pInitStruct->integralValSaturation =	(__REGUL_FPT__) 0.0;
+	pInitStruct->kD =						(__REGUL_FPT__) 0.0;
+	pInitStruct->kI =						(__REGUL_FPT__) 0.0;
+	pInitStruct->kP =						(__REGUL_FPT__) 0.0;
+	pInitStruct->returnValSaturation =		(__REGUL_FPT__) 0.0;
 }
 
-__REGUL_FLOAT_POINT_TYPE__
+__REGUL_FPT__
 REGUL_MixTwoVal(
-	__REGUL_FLOAT_POINT_TYPE__ firstVal,
-	__REGUL_FLOAT_POINT_TYPE__ secondVal,
-	__REGUL_FLOAT_POINT_TYPE__ mixCoeff)
+	__REGUL_FPT__ firstVal,
+	__REGUL_FPT__ secondVal,
+	__REGUL_FPT__ mixCoeff)
 {
-	if (mixCoeff > (__REGUL_FLOAT_POINT_TYPE__) 1.0)
+	if (mixCoeff > (__REGUL_FPT__) 1.0)
 	{
-		mixCoeff = (__REGUL_FLOAT_POINT_TYPE__) 1.0;
+		mixCoeff = (__REGUL_FPT__) 1.0;
 	}
-	if (mixCoeff < (__REGUL_FLOAT_POINT_TYPE__) 0.0)
+	if (mixCoeff < (__REGUL_FPT__) 0.0)
 	{
-		mixCoeff = (__REGUL_FLOAT_POINT_TYPE__) 1.0;
+		mixCoeff = (__REGUL_FPT__) 1.0;
 	}
 
 	return (firstVal * mixCoeff)
-		   + (((__REGUL_FLOAT_POINT_TYPE__) 1.0 - mixCoeff) * secondVal);
+		   + (((__REGUL_FPT__) 1.0 - mixCoeff) * secondVal);
 }
 /*============================================================================*/
 
@@ -383,10 +383,10 @@ REGUL_MixTwoVal(
  * @rapam
  * @return
  */
-__REGUL_FLOAT_POINT_TYPE__
+__REGUL_FPT__
 REGUL_PowerFunc (
-	__REGUL_FLOAT_POINT_TYPE__ basis,
-	__REGUL_FLOAT_POINT_TYPE__ exponent)
+	__REGUL_FPT__ basis,
+	__REGUL_FPT__ exponent)
 {
 	//    Если степень, в которую необходимо возвести "basis" не равна "1.0f",
 	//    "-1.0f" или "0.0f":
@@ -419,14 +419,14 @@ REGUL_PowerFunc (
  *                          переменную "value"
  * @return  Значение переменной "value", с учетом значения насыщения "saturation";
  */
-__REGUL_FLOAT_POINT_TYPE__
+__REGUL_FPT__
 RestrictionSaturation (
-	__REGUL_FLOAT_POINT_TYPE__ value,
-	__REGUL_FLOAT_POINT_TYPE__ saturation)
+	__REGUL_FPT__ value,
+	__REGUL_FPT__ saturation)
 {
 	/*    Ограничение насыщения выходного параметра */
 	//    Если переменная насыщения не равна "0.0":
-	if (saturation != (__REGUL_FLOAT_POINT_TYPE__) 0.0f)
+	if (saturation != (__REGUL_FPT__) 0.0f)
 	{
 		//    Если выходное значение больше положительного значения переменной насыщения:
 		if (value > saturation)

@@ -35,8 +35,8 @@
 
 /******************************************************************************/
 //  Секция определения констант
-#if !defined (__REGUL_FLOAT_POINT_TYPE__)
-#error "Please, set __REGUL_FLOAT_POINT_TYPE__ (default value is float)"
+#if !defined (__REGUL_FPT__)
+#error "Please, set __REGUL_FPT__ (default value is float)"
 #endif
 
 #define REGUL_EN                                    1
@@ -63,72 +63,72 @@ typedef struct
 	 * @brief Коэффициент коррекции ошибки положения;
 	 * @warning Это поле должно быть определено при инициализации стуктуры;
 	 */
-	__REGUL_FLOAT_POINT_TYPE__ c1;
+	__REGUL_FPT__ c1;
 
 	/**
 	 * @brief Коэффициент коррекции ошибки скорости;
 	 * @warning   Это поле должно быть определено при инициализации стуктуры;
 	 */
-	__REGUL_FLOAT_POINT_TYPE__ c2;
+	__REGUL_FPT__ c2;
 
 	/**
 	 * @brief     Коэффициент;
 	 * @warning   Это поле должно быть определено при инициализации стуктуры;
 	 * @see       eq. 4.53;
 	 */
-	__REGUL_FLOAT_POINT_TYPE__ b1;
+	__REGUL_FPT__ b1;
 
 	/**
 	 * @brief Коэффициент для второй производной от e1
 	 */
-	__REGUL_FLOAT_POINT_TYPE__ e1SecondDerivCoeff;
+	__REGUL_FPT__ e1SecondDerivCoeff;
 	/*---- |End  | <-- Коэффициенты регулятора -------------------------------*/
 
 	/**
 	 * @brief Коэффициент коррекции интегральной составляющей ошибки положения;
 	 * @warning   Это поле должно быть определено при инициализации стуктуры;
 	 */
-	__REGUL_FLOAT_POINT_TYPE__ lambda;
+	__REGUL_FPT__ lambda;
 
 	/**
 	 * @brief Интегральная состоавляющая от ошибки положения;
 	 */
-	__REGUL_FLOAT_POINT_TYPE__ chi;
+	__REGUL_FPT__ chi;
 
 	/**
 	 * @brief Желаемая угловая скорость;
 	 */
-	__REGUL_FLOAT_POINT_TYPE__ omega_xd;
+	__REGUL_FPT__ omega_xd;
 
 	/**
 	 * @brief Производная от желаемого положения;
 	 */
-	__REGUL_FLOAT_POINT_TYPE__ phi_d_deriv;
+	__REGUL_FPT__ phi_d_deriv;
 
 	/**
 	 * @brief Желаемое положение на шаге <t-1>;
 	 */
-	__REGUL_FLOAT_POINT_TYPE__ phi_d_t1;
+	__REGUL_FPT__ phi_d_t1;
 
 	/**
 	 * @brief Величина шага для нахождения производной;
 	 */
-	__REGUL_FLOAT_POINT_TYPE__ dT;
+	__REGUL_FPT__ dT;
 
 	/**
 	 * @brief Степерь, в которую необходимо возвести ошибку "e1";
 	 */
-	__REGUL_FLOAT_POINT_TYPE__ e1PowCoeff;
+	__REGUL_FPT__ e1PowCoeff;
 
 	/**
 	 * @brief Степень, в которую необходимо возвести ошибку "e2"
 	 */
-	__REGUL_FLOAT_POINT_TYPE__ e2PowCoeff;
+	__REGUL_FPT__ e2PowCoeff;
 
 	/**
 	 * @brief Максимальное значение по модулю выходного параметра регулятора;
 	 */
-	__REGUL_FLOAT_POINT_TYPE__ saturation;
+	__REGUL_FPT__ saturation;
 
 	/**
 	 * @brief Структура для дифференцирования переменной phi_d
@@ -174,22 +174,22 @@ typedef struct
 		/**
 		 * @brief Коэффициент усиления для пропорциональной составляющей ошибки
 		 */
-		__REGUL_FLOAT_POINT_TYPE__ kP;
+		__REGUL_FPT__ kP;
 	} proportional_s;
 
 	struct
 	{
-		__REGUL_FLOAT_POINT_TYPE__ kI;
+		__REGUL_FPT__ kI;
 
 		/**
 		 * @brief Коэффициент усиления для интегральной составляющей ошибки
 		 */
-		__REGUL_FLOAT_POINT_TYPE__ val;
+		__REGUL_FPT__ val;
 
 		/**
 		 * @brief Значение насыщения интегральной составляющей регулятора
 		 */
-		__REGUL_FLOAT_POINT_TYPE__ satur;
+		__REGUL_FPT__ satur;
 
 		/**
 		 * @brief Структура для интегрирования методом трапеций. Необходима
@@ -203,7 +203,7 @@ typedef struct
 		/**
 		 * @brief Коэффициент усиления дифференциальной составляющей ошибки
 		 */
-		__REGUL_FLOAT_POINT_TYPE__ kD;
+		__REGUL_FPT__ kD;
         
         /**
          * @brief Стуктура для дифференцирования методом 1-го порядка
@@ -215,12 +215,12 @@ typedef struct
 	 * @brief Величина шага для нахождения производной и нахождения
 	 *        интегральной составляющей методом трапеций
 	 */
-	__REGUL_FLOAT_POINT_TYPE__ dT;
+	__REGUL_FPT__ dT;
 
 	/**
 	 * @brief Значение насыщения возвращаемого регулятором значения
 	 */
-	__REGUL_FLOAT_POINT_TYPE__ pidValSatur;
+	__REGUL_FPT__ pidValSatur;
 } regul_pid_s;
 
 typedef struct
@@ -228,32 +228,32 @@ typedef struct
 	/**
 	 * @brief Период интегрирования/дифференцирования
 	 */
-	__REGUL_FLOAT_POINT_TYPE__ dT;
+	__REGUL_FPT__ dT;
 
 	/**
 	 * @brief	Коэффициент пропорциональной составляющей регулятора
 	 */
-	__REGUL_FLOAT_POINT_TYPE__ kP;
+	__REGUL_FPT__ kP;
 
 	/**
 	 * @brief	Коэффициент интегральной составляющей регулятора
 	 */
-	__REGUL_FLOAT_POINT_TYPE__ kI;
+	__REGUL_FPT__ kI;
 
 	/**
 	 * @brief	Коэффициент дифференциальной составляющей регулятора
 	 */
-	__REGUL_FLOAT_POINT_TYPE__ kD;
+	__REGUL_FPT__ kD;
 
 	/**
 	 * @brief	Значение насыщения интегральной составляющей регулятора
 	 */
-	__REGUL_FLOAT_POINT_TYPE__ integralValSaturation;
+	__REGUL_FPT__ integralValSaturation;
 
 	/**
 	 * @brief	Значение насыщения выходной величины ПИД регулятора
 	 */
-	__REGUL_FLOAT_POINT_TYPE__ returnValSaturation;
+	__REGUL_FPT__ returnValSaturation;
 } regul_pid_init_struct_s;
 /******************************************************************************/
 
@@ -261,14 +261,14 @@ typedef struct
 /******************************************************************************/
 //  Секция определения глобальных переменных
 #if defined __REGUL_REGULATORS_DEBUG__
-extern __REGUL_FLOAT_POINT_TYPE__ g_e1;
-extern __REGUL_FLOAT_POINT_TYPE__ g_e2;
-extern __REGUL_FLOAT_POINT_TYPE__ g_IntegralBackStepReturnValue;
-extern __REGUL_FLOAT_POINT_TYPE__ g_omega_x;
-extern __REGUL_FLOAT_POINT_TYPE__ g_omega_xd;
-extern __REGUL_FLOAT_POINT_TYPE__ g_phi_d_deriv;
-extern __REGUL_FLOAT_POINT_TYPE__ g_chi;
-extern __REGUL_FLOAT_POINT_TYPE__ g_b1;
+extern __REGUL_FPT__ g_e1;
+extern __REGUL_FPT__ g_e2;
+extern __REGUL_FPT__ g_IntegralBackStepReturnValue;
+extern __REGUL_FPT__ g_omega_x;
+extern __REGUL_FPT__ g_omega_xd;
+extern __REGUL_FPT__ g_phi_d_deriv;
+extern __REGUL_FPT__ g_chi;
+extern __REGUL_FPT__ g_b1;
 #endif
 /*******F***********************************************************************/
 
@@ -278,29 +278,29 @@ extern __REGUL_FLOAT_POINT_TYPE__ g_b1;
 extern float
 REGUL_Get_IBSC(
 	regul_ibsc_s *pStruct,
-	__REGUL_FLOAT_POINT_TYPE__ phi_d,
-	__REGUL_FLOAT_POINT_TYPE__ phi,
-	__REGUL_FLOAT_POINT_TYPE__ omega_x);
+	__REGUL_FPT__ phi_d,
+	__REGUL_FPT__ phi,
+	__REGUL_FPT__ omega_x);
 
 extern void
 REGUL_Init_IBSC(
 	regul_ibsc_s *pStruct);
 
-extern __REGUL_FLOAT_POINT_TYPE__
+extern __REGUL_FPT__
 REGUL_Get_PID(
 	regul_pid_s *pData_struct,
-	__REGUL_FLOAT_POINT_TYPE__ err,
-	__REGUL_FLOAT_POINT_TYPE__ derivErr);
+	__REGUL_FPT__ err,
+	__REGUL_FPT__ derivErr);
 
 //extern void
 //REGUL_Init_PID (
 //	regul_pid_s *pDID_s,
-//	__REGUL_FLOAT_POINT_TYPE__ kP,
-//	__REGUL_FLOAT_POINT_TYPE__ kI,
-//	__REGUL_FLOAT_POINT_TYPE__ kD,
-//	__REGUL_FLOAT_POINT_TYPE__ dT,
-//	__REGUL_FLOAT_POINT_TYPE__ returnValSaturation,
-//	__REGUL_FLOAT_POINT_TYPE__ integValSaturation);
+//	__REGUL_FPT__ kP,
+//	__REGUL_FPT__ kI,
+//	__REGUL_FPT__ kD,
+//	__REGUL_FPT__ dT,
+//	__REGUL_FPT__ returnValSaturation,
+//	__REGUL_FPT__ integValSaturation);
 
 extern regul_fnc_status_e
 REGUL_Init_PID(
@@ -311,16 +311,16 @@ extern void
 REGUL_PID_StructInit(
 	regul_pid_init_struct_s *pInitStruct);
 
-extern __REGUL_FLOAT_POINT_TYPE__
+extern __REGUL_FPT__
 REGUL_MixTwoVal(
-	__REGUL_FLOAT_POINT_TYPE__ firstVal,
-	__REGUL_FLOAT_POINT_TYPE__ secondVal,
-	__REGUL_FLOAT_POINT_TYPE__ mixCoeff);
+	__REGUL_FPT__ firstVal,
+	__REGUL_FPT__ secondVal,
+	__REGUL_FPT__ mixCoeff);
 
-extern __REGUL_FLOAT_POINT_TYPE__
+extern __REGUL_FPT__
 REGUL_PowerFunc (
-	__REGUL_FLOAT_POINT_TYPE__ basis,
-	__REGUL_FLOAT_POINT_TYPE__ exponent);
+	__REGUL_FPT__ basis,
+	__REGUL_FPT__ exponent);
 /******************************************************************************/
 
 
