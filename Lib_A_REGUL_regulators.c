@@ -320,7 +320,7 @@ REGUL_Init_PID(
 	}
 
 	/* Инициализация структуры для интегральной составляющей PID регулятора */
-	ninteg_trapz_InitStruct_s trapzInit_s;
+	ninteg_trapz_init_struct_s trapzInit_s;
 	NINTEG_Trapz_StructInit(
 		&trapzInit_s);
 
