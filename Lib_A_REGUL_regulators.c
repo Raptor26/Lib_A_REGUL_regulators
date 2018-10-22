@@ -59,7 +59,7 @@ RestrictionSaturation (
  *                          данные для регулятора IBSC;
  * @param[in]   phi_d:      Желаемое положение;
  *      @note   Если "phi_d_its_e1Flag" == 1, то "phi_d" интерпретируется как ошибка
- *              между желаемым положнием и текущим (т.е. как "e1");
+ *              между желаемым положением и текущим (т.е. как "e1");
  *      @see    REGUL_integ_back_step_s;
  *
  * @param[in]   phi:        Текущее положение;
@@ -82,7 +82,7 @@ REGUL_Get_IBSC (
 {
 	/*---- |Begin| --> Дифференцирование phi_d (т.е. желаемого положения) ----*/
 	/* Установка периода дифференцирования */
-	pStruct->phi_d_derivStruct.dT = pStruct->dT;
+	pStruct->phi_d_derivStruct.freq = pStruct->dT;
 
 	/* Дифференцирование желаемого положения методом 1-го порядка */
 	__REGUL_FPT__ phi_d_deriv =
@@ -131,8 +131,8 @@ REGUL_Get_IBSC (
 		- (pStruct->c1 * pStruct->lambda * pStruct->chi);
 
 	/* |Begin| --> Взятие второй производной от e1 ---------------------------*/
-	pStruct->e1_FirstDerivStruct.dT = pStruct->dT;
-	pStruct->e1_SecontDerivStruct.dT = pStruct->dT;
+	pStruct->e1_FirstDerivStruct.freq = pStruct->dT;
+	pStruct->e1_SecontDerivStruct.freq = pStruct->dT;
 
 	/* Нахождение первой производной от e1 */
 	__REGUL_FPT__ e1DerivTemp =
@@ -226,7 +226,7 @@ REGUL_Get_PID(
 		err * pPID_s->proportional_s.kP;
 
 	/* Обновление интегральной коррекции (методом трапеций) */
-	pPID_s->integral_s.val =
+	pPID_s->integral_s.val +=
 		(__REGUL_FPT__) NINTEG_Trapz(
 			&pPID_s->integral_s.deltaTrap_s,
 			err * pPID_s->integral_s.kI);
@@ -245,9 +245,10 @@ REGUL_Get_PID(
 	{
 		/* Расчет дифференциальной составляющей регулятора и её применение */
 		returnVal +=
-			((__REGUL_FPT__) DIFF_GetDifferent1(
-				 &pPID_s->derivative_s.different1_s,
-				 err * pPID_s->derivative_s.kD));
+			pPID_s->derivative_s.kD
+			* ((__REGUL_FPT__) DIFF_GetDifferent1(
+				   &pPID_s->derivative_s.different1_s,
+				   err));
 	}
 	/* Иначе, если значение дифференциальной составляющей передано в функцию */
 	else
@@ -300,23 +301,24 @@ REGUL_Init_PID(
 	regul_pid_s *p_s,
 	regul_pid_init_struct_s *pInit_s)
 {
+	p_s->initStatus_e = REGUL_ERROR;
+
 	/* Инициализация структуры ПИД регулятора*/
-	regul_fnc_status_e pidInitStatus_e;
 	if ((pInit_s->dT != (__REGUL_FPT__) 0.0)
 			&& (pInit_s->returnValSaturation != (__REGUL_FPT__) 0.0))
 	{
 		p_s->dT					= pInit_s->dT;
-		p_s->derivative_s.kD	= pInit_s->kD;
+		p_s->proportional_s.kP	= pInit_s->kP;
 		p_s->integral_s.kI		= pInit_s->kI;
+		p_s->derivative_s.kD	= pInit_s->kD;
 		p_s->integral_s.satur	= pInit_s->integralValSaturation;
 		p_s->pidValSatur		= pInit_s->returnValSaturation;
-		p_s->proportional_s.kP	= pInit_s->kP;
-		pidInitStatus_e =
-			REGUL_SUCCESS;
+		p_s->initStatus_e		= REGUL_SUCCESS;
 	}
 	else
 	{
-		return (pidInitStatus_e = REGUL_ERROR);
+		p_s->initStatus_e = REGUL_ERROR;
+		return (p_s->initStatus_e);
 	}
 
 	/* Инициализация структуры для интегральной составляющей PID регулятора */
@@ -325,7 +327,7 @@ REGUL_Init_PID(
 		&trapzInit_s);
 
 	/* Инициализация параметров структуры */
-	trapzInit_s.accumulate_flag			= NINTEG_ENABLE;
+	trapzInit_s.accumulate_flag			= NINTEG_DISABLE;
 	trapzInit_s.integratePeriod			= pInit_s->dT;
 	trapzInit_s.accumDataSaturation		= pInit_s->integralValSaturation;
 
@@ -334,7 +336,12 @@ REGUL_Init_PID(
 		NINTEG_Trapz_Init(
 			&p_s->integral_s.deltaTrap_s,
 			&trapzInit_s);
-	pidInitStatus_e = trapzInitStatus_e;
+
+	if (trapzInitStatus_e == NINTEG_ERROR)
+	{
+		p_s->initStatus_e = REGUL_ERROR;
+		return (p_s->initStatus_e);
+	}
 
 	/* Инициализация структуры для дифференцирования */
 	diff_differentiation_1_init_struct_s diffInit_s;
@@ -350,10 +357,15 @@ REGUL_Init_PID(
 		DIFF_Init_Different1(
 			&p_s->derivative_s.different1_s,
 			&diffInit_s);
-	pidInitStatus_e = different1InitStatus_e;
+
+	if (different1InitStatus_e == DIFF_ERROR)
+	{
+		p_s->initStatus_e = REGUL_ERROR;
+		return (p_s->initStatus_e);
+	}
 
 	/* Возврат статуса инициализации */
-	return (pidInitStatus_e);
+	return (p_s->initStatus_e);
 }
 
 void
