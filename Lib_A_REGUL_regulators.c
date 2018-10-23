@@ -41,7 +41,7 @@ __REGUL_FPT__ g_b1;
 
 /******************************************************************************/
 //  Секция прототипов локальных функций
-__REGUL_FPT__
+static __REGUL_FPT__
 RestrictionSaturation (
 	__REGUL_FPT__ value,
 	__REGUL_FPT__ saturation);
@@ -415,22 +415,31 @@ REGUL_PowerFunc (
 {
 	//    Если степень, в которую необходимо возвести "basis" не равна "1.0f",
 	//    "-1.0f" или "0.0f":
-	if ((exponent != 1.0f)
-			|| (exponent != -1.0f)
-			|| (exponent != 0.0f))
+	if ((exponent != (__REGUL_FPT__) 1.0)
+			|| (exponent != ((__REGUL_FPT__) - 1.0))
+			|| (exponent != (__REGUL_FPT__) 0.0))
 	{
 		//    Если "basis" положительное число;
-		if (basis >= 0.0f)
+		if (basis >= (__REGUL_FPT__) 0.0)
 		{
+#if (__REGUL_FPT__) == float
 			//    "e1PowCoeff" берется по модулю;
 			basis = powf (basis, fabsf (exponent));
+#elif (__REGUL_FPT__) == double
+			//    "e1PowCoeff" берется по модулю;
+			basis = pow (basis, fabs (exponent));
+#endif
 		}
 		//  Иначе (если "basis" отрицательное число):
 		else
 		{
+#if (__REGUL_FPT__) == float
 			//    Результат возведения в степень модуля числа "basis" умножается на "-1.0f";
 			//    "exponent" берется по модулю;
-			basis = (powf (fabsf (basis), fabsf (exponent))) * -1.0f;
+			basis = (powf (fabsf (basis), fabsf (exponent))) * ((__REGUL_FPT__) - 1.0);
+#elif (__REGUL_FPT__) == double
+			basis = (pow (fabs (basis), fabs (exponent))) * ((__REGUL_FPT__) - 1.0);
+#endif
 		}
 	}
 	return basis;

@@ -224,11 +224,11 @@ typedef struct
 	 * @brief 	Значение насыщения возвращаемого регулятором значения
 	 */
 	__REGUL_FPT__ pidValSatur;
-    
-   /**
+
+	/**
 	 * @brief 	Статус инициализации структуры
 	 */
-    regul_fnc_status_e initStatus_e;
+	regul_fnc_status_e initStatus_e;
 } regul_pid_s;
 
 typedef struct
