@@ -298,27 +298,27 @@ REGUL_Get_PID(
  */
 regul_fnc_status_e
 REGUL_Init_PID(
-	regul_pid_s *p_s,
-	regul_pid_init_struct_s *pInit_s)
+	regul_pid_s *pPID_s,
+	regul_pid_init_struct_s *pPIDInit_s)
 {
-	p_s->initStatus_e = REGUL_ERROR;
+	pPID_s->initStatus_e = REGUL_ERROR;
 
 	/* Инициализация структуры ПИД регулятора*/
-	if ((pInit_s->dT != (__REGUL_FPT__) 0.0)
-			&& (pInit_s->returnValSaturation != (__REGUL_FPT__) 0.0))
+	if ((pPIDInit_s->dT != (__REGUL_FPT__) 0.0)
+			&& (pPIDInit_s->returnValSaturation != (__REGUL_FPT__) 0.0))
 	{
-		p_s->dT					= pInit_s->dT;
-		p_s->proportional_s.kP	= pInit_s->kP;
-		p_s->integral_s.kI		= pInit_s->kI;
-		p_s->derivative_s.kD	= pInit_s->kD;
-		p_s->integral_s.satur	= pInit_s->integralValSaturation;
-		p_s->pidValSatur		= pInit_s->returnValSaturation;
-		p_s->initStatus_e		= REGUL_SUCCESS;
+		pPID_s->dT					= pPIDInit_s->dT;
+		pPID_s->proportional_s.kP	= pPIDInit_s->kP;
+		pPID_s->integral_s.kI		= pPIDInit_s->kI;
+		pPID_s->derivative_s.kD		= pPIDInit_s->kD;
+		pPID_s->integral_s.satur	= pPIDInit_s->integralValSaturation;
+		pPID_s->pidValSatur			= pPIDInit_s->returnValSaturation;
+		pPID_s->initStatus_e		= REGUL_SUCCESS;
 	}
 	else
 	{
-		p_s->initStatus_e = REGUL_ERROR;
-		return (p_s->initStatus_e);
+		pPID_s->initStatus_e		= REGUL_ERROR;
+		return						(pPID_s->initStatus_e);
 	}
 
 	/* Инициализация структуры для интегральной составляющей PID регулятора */
@@ -328,19 +328,19 @@ REGUL_Init_PID(
 
 	/* Инициализация параметров структуры */
 	trapzInit_s.accumulate_flag			= NINTEG_DISABLE;
-	trapzInit_s.integratePeriod			= pInit_s->dT;
-	trapzInit_s.accumDataSaturation		= pInit_s->integralValSaturation;
+	trapzInit_s.integratePeriod			= pPIDInit_s->dT;
+	trapzInit_s.accumDataSaturation		= pPIDInit_s->integralValSaturation;
 
 	/* Инициализация структуры интегрирования */
 	ninteg_fnc_status_e trapzInitStatus_e =
 		NINTEG_Trapz_Init(
-			&p_s->integral_s.deltaTrap_s,
+			&pPID_s->integral_s.deltaTrap_s,
 			&trapzInit_s);
 
 	if (trapzInitStatus_e == NINTEG_ERROR)
 	{
-		p_s->initStatus_e = REGUL_ERROR;
-		return (p_s->initStatus_e);
+		pPID_s->initStatus_e = REGUL_ERROR;
+		return (pPID_s->initStatus_e);
 	}
 
 	/* Инициализация структуры для дифференцирования */
@@ -349,23 +349,23 @@ REGUL_Init_PID(
 		&diffInit_s);
 
 	/* Инициализация параметров структуры */
-	diffInit_s.dT = pInit_s->dT;
+	diffInit_s.dT = pPIDInit_s->dT;
 
 	/* Инициализация структуры дифференцирования */
 	diff_fnc_status_e different1InitStatus_e = DIFF_ERROR;
 	different1InitStatus_e =
 		DIFF_Init_Different1(
-			&p_s->derivative_s.different1_s,
+			&pPID_s->derivative_s.different1_s,
 			&diffInit_s);
 
 	if (different1InitStatus_e == DIFF_ERROR)
 	{
-		p_s->initStatus_e = REGUL_ERROR;
-		return (p_s->initStatus_e);
+		pPID_s->initStatus_e = REGUL_ERROR;
+		return (pPID_s->initStatus_e);
 	}
 
 	/* Возврат статуса инициализации */
-	return (p_s->initStatus_e);
+	return (pPID_s->initStatus_e);
 }
 
 void
