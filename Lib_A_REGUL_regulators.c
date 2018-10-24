@@ -422,24 +422,16 @@ REGUL_PowerFunc (
 		//    Если "basis" положительное число;
 		if (basis >= (__REGUL_FPT__) 0.0)
 		{
-#if (__REGUL_FPT__) == float
 			//    "e1PowCoeff" берется по модулю;
-			basis = powf (basis, fabsf (exponent));
-#elif (__REGUL_FPT__) == double
-			//    "e1PowCoeff" берется по модулю;
-			basis = pow (basis, fabs (exponent));
-#endif
+			basis = __REGUL_pow(basis, __REGUL_fabs (exponent));
 		}
 		//  Иначе (если "basis" отрицательное число):
 		else
 		{
-#if (__REGUL_FPT__) == float
+
 			//    Результат возведения в степень модуля числа "basis" умножается на "-1.0f";
 			//    "exponent" берется по модулю;
-			basis = (powf (fabsf (basis), fabsf (exponent))) * ((__REGUL_FPT__) - 1.0);
-#elif (__REGUL_FPT__) == double
-			basis = (pow (fabs (basis), fabs (exponent))) * ((__REGUL_FPT__) - 1.0);
-#endif
+			basis = (__REGUL_pow (fabsf (basis), __REGUL_fabs (exponent))) * ((__REGUL_FPT__) - 1.0);
 		}
 	}
 	return basis;

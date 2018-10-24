@@ -36,11 +36,32 @@
 /******************************************************************************/
 //  Секция определения констант
 #if !defined (__REGUL_FPT__)
-#error "Please, set __REGUL_FPT__ (default value is float)"
+#error "Please, set __REGUL_FPT__ = 'f' or 'd'"
 #endif
 
-#define REGUL_EN                                    1
-#define REGUL_DIS                                   0
+/* Если __REGUL_FPT__ равен float */
+#if 	__REGUL_FPT__ == 'f'
+#undef 	__REGUL_FPT__
+#define __REGUL_FPT__		float
+
+/* Переопределение математических функций */
+#define __REGUL_sin(x)		sinf(x)
+#define __REGUL_pow(x,y)	powf(x,y)
+#define __REGUL_fabs(x)		fabsf(x)
+
+/* Если __REGUL_FPT__ равен double */
+#elif 	__REGUL_FPT__ == 'd'
+#undef  __REGUL_FPT__
+#define __REGUL_FPT__		double
+
+/* Переопределение математических функций */
+#define __REGUL_sin(x)		sin(x)
+#define __REGUL_pow(x,y)	pow(x,y)
+#define __REGUL_fabs(x)		fabs(x)
+#endif
+
+#define REGUL_EN 									1
+#define REGUL_DIS 									0
 /******************************************************************************/
 
 
@@ -283,7 +304,7 @@ extern __REGUL_FPT__ g_b1;
 
 /******************************************************************************/
 //  Секция прототипов глобальных функций
-extern float
+extern __REGUL_FPT__
 REGUL_Get_IBSC(
 	regul_ibsc_s *pStruct,
 	__REGUL_FPT__ phi_d,
