@@ -82,7 +82,7 @@ REGUL_Get_IBSC (
 {
 	/*---- |Begin| --> Дифференцирование phi_d (т.е. желаемого положения) ----*/
 	/* Установка периода дифференцирования */
-	pStruct->phi_d_derivStruct.freq = pStruct->dT;
+	pStruct->phi_d_derivStruct.freq = 1.0 / pStruct->dT;
 
 	/* Дифференцирование желаемого положения методом 1-го порядка */
 	__REGUL_FPT__ phi_d_deriv =
