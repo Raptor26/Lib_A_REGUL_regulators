@@ -41,10 +41,6 @@ __REGUL_FPT__ g_b1;
 
 /******************************************************************************/
 //  Секция прототипов локальных функций
-static __REGUL_FPT__
-RestrictionSaturation (
-	__REGUL_FPT__ value,
-	__REGUL_FPT__ saturation);
 /******************************************************************************/
 
 
@@ -73,101 +69,101 @@ RestrictionSaturation (
  * @note    см. eq. 4.45 - 4.53 в документе "Design and control of quadrotors
  *          with application to autonomous flying"
  */
-__REGUL_FPT__
-REGUL_Get_IBSC (
-	regul_ibsc_s *pStruct,
-	__REGUL_FPT__ e1,
-	__REGUL_FPT__ phi_d,
-	__REGUL_FPT__ omega_x)
-{
-	/*---- |Begin| --> Дифференцирование phi_d (т.е. желаемого положения) ----*/
-	/* Установка периода дифференцирования */
-	pStruct->phi_d_derivStruct.freq = 1.0 / pStruct->dT;
-
-	/* Дифференцирование желаемого положения методом 1-го порядка */
-	__REGUL_FPT__ phi_d_deriv =
-		DIFF_GetDifferent1 (
-			&pStruct->phi_d_derivStruct,
-			phi_d);
-	/*---- |End  | <-- Дифференцирование phi_d (т.е. желаемого положения) ----*/
-
-	/* Расчет интегральной состоавляющей (смотри комментарий к eq. 4.46) */
-	pStruct->chi +=
-		e1 * pStruct->lambda * pStruct->dT;
-
-	/*    Ограничение насыщения интегральной составляющей */
-	pStruct->chi =
-		RestrictionSaturation (
-			pStruct->chi,
-			pStruct->saturation);
-
-	/* Расчет желаемой скорости (eq. 4.46) */
-	__REGUL_FPT__ omega_xd =
-		pStruct->c1 * e1
-		+ phi_d_deriv
-		+ pStruct->lambda * pStruct->chi;
-
-	/* Ограничение насыщения желаемой скорости */
-	omega_xd =
-		RestrictionSaturation (
-			omega_xd,
-			pStruct->saturation);
-
-	/* Расчет ошибки между желаемой скоростью и фактической (eq. 4.48) */
-	__REGUL_FPT__ e2 = omega_xd - omega_x;
-
-	/* Коэффициент "b1" должен быть только положительным */
-	if (pStruct->b1 < 0.0f)
-	{
-		pStruct->b1 *= -1.0f;
-	}
-
-	/* Расчет управляющего воздействия (eq. 4.53) */
-	__REGUL_FPT__ returnValue =
-		(1 / pStruct->b1)
-		* (1 - pStruct->c1 * pStruct->c1 + pStruct->lambda)
-		* e1
-		+ ((pStruct->c1 + pStruct->c2) * e2)
-		- (pStruct->c1 * pStruct->lambda * pStruct->chi);
-
-	/* |Begin| --> Взятие второй производной от e1 ---------------------------*/
-	pStruct->e1_FirstDerivStruct.freq = pStruct->dT;
-	pStruct->e1_SecontDerivStruct.freq = pStruct->dT;
-
-	/* Нахождение первой производной от e1 */
-	__REGUL_FPT__ e1DerivTemp =
-		DIFF_GetDifferent1 (
-			&pStruct->e1_FirstDerivStruct,
-			e1);
-
-	/* Нахождение второй производной от e1 */
-	//    e1DerivTemp = DIFF_FindDifferent1(&pStruct->e1_SecontDerivStruct,
-	//                                      e1DerivTemp);
-
-	/* Добавление второй производной от ошибки положения в результат
-	 * работы Integral Back Step Control */
-	returnValue += e1DerivTemp * pStruct->e1SecondDerivCoeff;
-	/* |End  | <-- Взятие второй производной от e1 ---------------------------*/
-
-	/* Ограничение насыщения выходного параметра */
-	returnValue =
-		RestrictionSaturation (
-			returnValue,
-			pStruct->saturation);
-
-#if defined __REGUL_REGULATORS_DEBUG__
-	g_e1 = e1;
-	g_e2 = e2;
-	g_IntegralBackStepReturnValue = returnValue;
-	g_omega_x = omega_x;
-	g_omega_xd = omega_xd;
-	g_phi_d_deriv = phi_d_deriv;
-	g_chi = pStruct->chi;
-	g_b1 = pStruct->b1;
-#endif
-
-	return returnValue;
-}
+//__REGUL_FPT__
+//REGUL_Get_IBSC (
+//	regul_ibsc_s *pStruct,
+//	__REGUL_FPT__ e1,
+//	__REGUL_FPT__ phi_d,
+//	__REGUL_FPT__ omega_x)
+//{
+//	/*---- |Begin| --> Дифференцирование phi_d (т.е. желаемого положения) ----*/
+//	/* Установка периода дифференцирования */
+//	pStruct->phi_d_derivStruct.freq = 1.0 / pStruct->dT;
+//
+//	/* Дифференцирование желаемого положения методом 1-го порядка */
+//	__REGUL_FPT__ phi_d_deriv =
+//		DIFF_GetDifferent1 (
+//			&pStruct->phi_d_derivStruct,
+//			phi_d);
+//	/*---- |End  | <-- Дифференцирование phi_d (т.е. желаемого положения) ----*/
+//
+//	/* Расчет интегральной состоавляющей (смотри комментарий к eq. 4.46) */
+//	pStruct->chi +=
+//		e1 * pStruct->lambda * pStruct->dT;
+//
+//	/*    Ограничение насыщения интегральной составляющей */
+//	pStruct->chi =
+//		REGUL_RestrictionSaturation (
+//			pStruct->chi,
+//			pStruct->saturation);
+//
+//	/* Расчет желаемой скорости (eq. 4.46) */
+//	__REGUL_FPT__ omega_xd =
+//		pStruct->c1 * e1
+//		+ phi_d_deriv
+//		+ pStruct->lambda * pStruct->chi;
+//
+//	/* Ограничение насыщения желаемой скорости */
+//	omega_xd =
+//		REGUL_RestrictionSaturation (
+//			omega_xd,
+//			pStruct->saturation);
+//
+//	/* Расчет ошибки между желаемой скоростью и фактической (eq. 4.48) */
+//	__REGUL_FPT__ e2 = omega_xd - omega_x;
+//
+//	/* Коэффициент "b1" должен быть только положительным */
+//	if (pStruct->b1 < 0.0f)
+//	{
+//		pStruct->b1 *= -1.0f;
+//	}
+//
+//	/* Расчет управляющего воздействия (eq. 4.53) */
+	// __REGUL_FPT__ returnValue =
+	// 	(1 / pStruct->b1)
+	// 	* (1 - pStruct->c1 * pStruct->c1 + pStruct->lambda)
+	// 	* e1
+	// 	+ ((pStruct->c1 + pStruct->c2) * e2)
+	// 	- (pStruct->c1 * pStruct->lambda * pStruct->chi);
+//
+//	/* |Begin| --> Взятие второй производной от e1 ---------------------------*/
+//	pStruct->e1_FirstDerivStruct.freq = pStruct->dT;
+//	pStruct->e1_SecontDerivStruct.freq = pStruct->dT;
+//
+//	/* Нахождение первой производной от e1 */
+//	__REGUL_FPT__ e1DerivTemp =
+//		DIFF_GetDifferent1 (
+//			&pStruct->e1_FirstDerivStruct,
+//			e1);
+//
+//	/* Нахождение второй производной от e1 */
+//	//    e1DerivTemp = DIFF_FindDifferent1(&pStruct->e1_SecontDerivStruct,
+//	//                                      e1DerivTemp);
+//
+//	/* Добавление второй производной от ошибки положения в результат
+//	 * работы Integral Back Step Control */
+//	returnValue += e1DerivTemp * pStruct->e1SecondDerivCoeff;
+//	/* |End  | <-- Взятие второй производной от e1 ---------------------------*/
+//
+//	/* Ограничение насыщения выходного параметра */
+//	returnValue =
+//		REGUL_RestrictionSaturation (
+//			returnValue,
+//			pStruct->saturation);
+//
+//#if defined __REGUL_REGULATORS_DEBUG__
+//	g_e1 = e1;
+//	g_e2 = e2;
+//	g_IntegralBackStepReturnValue = returnValue;
+//	g_omega_x = omega_x;
+//	g_omega_xd = omega_xd;
+//	g_phi_d_deriv = phi_d_deriv;
+//	g_chi = pStruct->chi;
+//	g_b1 = pStruct->b1;
+//#endif
+//
+//	return returnValue;
+//}
 
 /**
  * @brief   Функция выполняет инициализацию полей структуры "REGUL_integ_back_step_s"
@@ -179,29 +175,29 @@ REGUL_Get_IBSC (
  * @note    см. eq. 4.45 - 4.53 в документе "Design and control of quadrotors
  *          with application to autonomous flying"
  */
-void
-REGUL_Init_IBSC (
-	regul_ibsc_s *pStruct)
-{
-	pStruct->dT = 0.0f;
-	pStruct->c1 = 1.0f;
-	pStruct->c2 = 0.0f;
-	pStruct->lambda = 0.0f;
-	pStruct->b1 = 1.0f;
-	pStruct->e1PowCoeff = 1.0f;
-	pStruct->e2PowCoeff = 1.0f;
-	pStruct->saturation = 0.0f;
-	pStruct->chi = 0.0f;
-	pStruct->omega_xd = 0.0f;
-	pStruct->phi_d_t1 = 0.0f;
-	pStruct->phi_d_deriv = 0.0f;
-	pStruct->e1SecondDerivCoeff = 0.0f;
-
-	/* Значения переключателей */
-	pStruct->tumblers.e1TakeModuleFlag = REGUL_DIS;
-	pStruct->tumblers.phi_d_its_e1Flag = REGUL_DIS;
-	pStruct->tumblers.enablePowFunctFlag = REGUL_DIS;
-}
+//void
+//REGUL_Init_IBSC (
+//	regul_ibsc_s *pStruct)
+//{
+//	pStruct->dT = 0.0f;
+//	pStruct->c1 = 1.0f;
+//	pStruct->c2 = 0.0f;
+//	pStruct->lambda = 0.0f;
+//	pStruct->b1 = 1.0f;
+//	pStruct->e1PowCoeff = 1.0f;
+//	pStruct->e2PowCoeff = 1.0f;
+//	pStruct->saturation = 0.0f;
+//	pStruct->chi = 0.0f;
+//	pStruct->omega_xd = 0.0f;
+//	pStruct->phi_d_t1 = 0.0f;
+//	pStruct->phi_d_deriv = 0.0f;
+//	pStruct->e1SecondDerivCoeff = 0.0f;
+//
+//	/* Значения переключателей */
+//	pStruct->tumblers.e1TakeModuleFlag = REGUL_DIS;
+//	pStruct->tumblers.phi_d_its_e1Flag = REGUL_DIS;
+//	pStruct->tumblers.enablePowFunctFlag = REGUL_DIS;
+//}
 
 /**
  * @brief	Функция выполняет расчет управляющего воздействия с помощью
@@ -233,7 +229,7 @@ REGUL_Get_PID(
 
 	/* Ограничение насыщения интегральной коррекции */
 	pPID_s->integral_s.val =
-		RestrictionSaturation(
+		REGUL_RestrictionSaturation(
 			pPID_s->integral_s.val,
 			pPID_s->integral_s.satur);
 
@@ -259,7 +255,7 @@ REGUL_Get_PID(
 
 	/* Ограничение насыщения возвращаемого регулятором значения */
 	returnVal =
-		RestrictionSaturation (
+		REGUL_RestrictionSaturation (
 			returnVal,
 			pPID_s->pidValSatur);
 
@@ -344,7 +340,7 @@ REGUL_Init_PID(
 	}
 
 	/* Инициализация структуры для дифференцирования */
-	diff_differentiation_1_init_struct_s diffInit_s;
+	diff_differentiation_1_init_s diffInit_s;
 	DIFF_Different1_StructInit(
 		&diffInit_s);
 
@@ -446,7 +442,7 @@ REGUL_PowerFunc (
  * @return  Значение переменной "value", с учетом значения насыщения "saturation";
  */
 __REGUL_FPT__
-RestrictionSaturation (
+REGUL_RestrictionSaturation (
 	__REGUL_FPT__ value,
 	__REGUL_FPT__ saturation)
 {
